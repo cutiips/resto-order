@@ -9,8 +9,9 @@ import java.io.IOException;
 
 import java.sql.SQLException;
 
-/***
- * 🚀 responsable du maping de restaurant dans la DB
+/**
+ * 🚀 Responsable du mapping des entités "Restaurant" et "Address" dans la db
+ * Cette classe gère la connexion à la base de données et l'insertion des restaurants et adresses
  */
 public class RestaurantMapper {
     private String url;
@@ -34,7 +35,7 @@ public class RestaurantMapper {
             password = prop.getProperty("db.password");
         } catch (IOException ex) {
             System.err.println("Error loading properties: " + ex.getMessage());
-            throw new RuntimeException("Database configuration error", ex); // Propagate the exception
+            throw new RuntimeException("Database configuration error", ex); // except propagate
         }
     }
 
@@ -45,7 +46,7 @@ public class RestaurantMapper {
 
     /**
      * 🚀 Insertion de l'adresse en premier pour récupérer l'ID du restaurant et passer celui-ci en param dans l'insert du restaurant
-     * 💡 mise à jour du script de création et de population (v1-... .sql)
+     * 💡 MAJ DU SCRIPT (v1-... .sql)
      * @param address L'adresse à insérer dans la base de données.
      * @return L'ID de l'adresse insérée, ou null si l'insertion a échoué
      * @throws SQLException Si une erreur se produit lors de l'insertion dans la base de données
@@ -79,15 +80,16 @@ public class RestaurantMapper {
 
     /**
      * 🚀 Insertion d'un restaurant et de son adresse dans la db
+     * 💡 MAJ DU SCRIPTS (v1-... .sql)
      * 📦 Si l'adresse n'existe pas, elle sera insérée d'abord, puis le restaurant sera ajouté
      * @param restaurant Le restaurant à insérer dans la base de données.
      * @throws SQLException Si une erreur se produit lors de l'insertion dans la base de données.
      */
-    public void insert(Restaurant restaurant) throws SQLException {
+    public void insertRestaurant(Restaurant restaurant) throws SQLException {
         Long addressId = insertAddress(restaurant.getAddress()); // address insert + recover ID
 
         if (addressId == null) {
-            throw new SQLException("Failed to insert address, cannot insert restaurant."); // Lève une exception si l'adresse est nulle
+            throw new SQLException("Failed to insert address, cannot insert restaurant."); // if address = null
         }
 
         String query = "INSERT INTO Restaurants (id, name, adress_id) VALUES (?, ?, ?)";
@@ -96,7 +98,7 @@ public class RestaurantMapper {
              PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setLong(1, restaurant.getId());
             stmt.setString(2, restaurant.getName());
-            stmt.setLong(3, addressId); // use id adress
+            stmt.setLong(3, addressId); // use id address
 
             stmt.executeUpdate();
         } catch (SQLException e) {
@@ -105,5 +107,33 @@ public class RestaurantMapper {
         }
     }
 
+    /**
+     * 🚀 Insertion d'un restaurant directement dans la table RESTAURANT (avec l'adresse incluse dans les colonnes du restaurant
+     * 💡 PAS DE MAJ DU SCRIPTS
+     * @param restaurant Le restaurant est inséré avec son adresse
+     * @throws SQLException Si une erreur se produit lors de l'insertion dans la base de données.
+     */
+    public void insert(Restaurant restaurant) throws SQLException {
+        String query = "INSERT INTO RESTAURANT (nom, code_postal, localite, rue, num_rue, pays) " +
+                "VALUES (?, ?, ?, ?, ?, ?)";
+
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+
+            stmt.setString(1, restaurant.getName());
+
+            Address address = restaurant.getAddress();
+            stmt.setString(2, address.getPostalCode());
+            stmt.setString(3, address.getLocality());
+            stmt.setString(4, address.getStreet());
+            stmt.setString(5, address.getStreetNumber());
+            stmt.setString(6, address.getCountryCode());
+
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("Erreur lors de l'insertion du restaurant : " + e.getMessage());
+            throw e;  // propagate
+        }
+    }
 
 }
