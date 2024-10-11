@@ -60,8 +60,9 @@ public abstract class AbstractCLI {
         return input;
     }
 
+    // update minLength to 0 (before = 1)
     protected String readStringFromUser() {
-        return this.readStringFromUser(1, 255, null);
+        return this.readStringFromUser(0, 255, null);
     }
 
     protected String readEmailFromUser() {
@@ -85,6 +86,21 @@ public abstract class AbstractCLI {
             input = Arrays.stream(choices).filter(choice -> choice.equals(inputString)).findFirst().orElse(null);
             if (input == null) {
                 this.ln(String.format("Veuillez choisir une option (%s).", String.join(", ", choices)));
+            }
+        }
+        return input;
+    }
+
+    protected Long readLongFromUser() {
+        Long input = null;
+        while (input == null) {
+            try {
+                input = scanner.nextLong();
+            } catch (InputMismatchException e) {
+                this.ln("Veuillez entrer un nombre entier.");
+                input = null;
+            } finally {
+                scanner.nextLine();
             }
         }
         return input;
