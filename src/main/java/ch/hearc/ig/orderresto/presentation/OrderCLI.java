@@ -6,15 +6,16 @@ import ch.hearc.ig.orderresto.business.Product;
 import ch.hearc.ig.orderresto.business.Restaurant;
 import ch.hearc.ig.orderresto.persistence.FakeDb;
 
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class OrderCLI extends AbstractCLI {
 
-    public Order createNewOrder() {
+    public Order createNewOrder() throws SQLException {
 
         this.ln("======================================================");
-        Restaurant restaurant = (new RestaurantCLI()).getExistingRestaurant();
+        Restaurant restaurant = (new RestaurantCLI()).displayRestaurantIdsAndNames();
 
         Product product = (new ProductCLI()).getRestaurantProduct(restaurant);
 

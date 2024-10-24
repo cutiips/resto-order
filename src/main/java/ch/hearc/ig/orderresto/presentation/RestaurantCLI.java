@@ -20,7 +20,7 @@ public class RestaurantCLI extends AbstractCLI {
      * 🎛️ Démarre le menu de gestion des restaurants.
      * Affiche les options et permet à l'utilisateur de sélectionner une action.
      */
-    public void run() {
+    public void run() throws SQLException {
         this.ln("======================================================");
         this.ln("Gestion des restaurants");
         this.ln("0. Retour au menu principal");
@@ -38,7 +38,7 @@ public class RestaurantCLI extends AbstractCLI {
      * Exécute l'action correspondante en fonction du choix.
      * @param userChoice Choix de l'utilisateur (de 0 à 5).
      */
-    private void handleUserChoice(int userChoice) {
+    private void handleUserChoice(int userChoice) throws SQLException {
         switch (userChoice) {
             case 0:
                 return;
@@ -46,10 +46,7 @@ public class RestaurantCLI extends AbstractCLI {
                 addRestaurant();
                 break;
             case 2:
-                Restaurant restaurant = getExistingRestaurant();
-                if (restaurant != null) {
-                    displayRestaurant(restaurant);
-                }
+                displayRestaurantIdsAndNames();
                 break;
             case 3:
                 updateRestaurant();
@@ -102,7 +99,7 @@ public class RestaurantCLI extends AbstractCLI {
      * Demande l'ID du restaurant à mettre à jour, puis les nouvelles informations.
      * Si une entrée est vide, conserve l'ancienne valeur.
      */
-    private void updateRestaurant() {
+    private void updateRestaurant() throws SQLException {
         this.ln("Voici la liste des restaurants (ID et Nom) :");
         displayRestaurantIdsAndNames();  // Affichage uniquement des ID et noms des restaurants
 
@@ -172,7 +169,7 @@ public class RestaurantCLI extends AbstractCLI {
      * 🗑️ Supprime un restaurant par son ID.
      * Affiche la liste des restaurants avec leurs ID pour que l'utilisateur puisse choisir.
      */
-    private void deleteRestaurant() {
+    private void deleteRestaurant() throws SQLException {
         this.ln("Voici la liste des restaurants (ID et Nom) :");
         displayRestaurantIdsAndNames();
 
@@ -209,32 +206,27 @@ public class RestaurantCLI extends AbstractCLI {
      * 📄 Affiche uniquement les IDs et les noms des restaurants.
      * Utile pour la mise à jour ou la suppression des restaurants.
      */
-    private void displayRestaurantIdsAndNames() {
-        try {
-            List<Restaurant> restaurants = restaurantMapper.findAll();
-            if (restaurants.isEmpty()) {
-                this.ln("Aucun restaurant trouvé.");
-            } else {
-                for (Restaurant restaurant : restaurants) {
-                    this.ln(String.format("ID: %d, Nom: %s", restaurant.getId(), restaurant.getName()));
-                }
-            }
-        } catch (SQLException e) {
-            this.ln("Erreur lors de la récupération des restaurants : " + e.getMessage());
+    public Restaurant displayRestaurantIdsAndNames() throws SQLException {
+        this.ln("Choisissez un restaurant:");
+        List<Restaurant> allRestaurants = restaurantMapper.findAll();
+        for (int i = 0 ; i < allRestaurants.size() ; i++) {
+            Restaurant restaurant = (Restaurant) allRestaurants.get(i);
+            this.ln(String.format("%d. %s.", i, restaurant.getName()));
         }
-    }
-
-    /**
-     * 📝 Affiche les détails complets d'un restaurant.
-     * @param restaurant Le restaurant à afficher.
-     */
-    private void displayRestaurant(Restaurant restaurant) {
-        this.ln(String.format("Nom: %s, Adresse: %s %s, %s %s",
-                restaurant.getName(),
-                restaurant.getAddress().getStreet(),
-                restaurant.getAddress().getStreetNumber(),
-                restaurant.getAddress().getPostalCode(),
-                restaurant.getAddress().getLocality()));
+        int index = this.readIntFromUser(allRestaurants.size() - 1);
+        return (Restaurant) allRestaurants.get(index);
+//        try {
+//            List<Restaurant> restaurants = restaurantMapper.findAll();
+//            if (restaurants.isEmpty()) {
+//                this.ln("Aucun restaurant trouvé.");
+//            } else {
+//                for (Restaurant restaurant : restaurants) {
+//                    this.ln(String.format("ID: %d, Nom: %s", restaurant.getId(), restaurant.getName()));
+//                }
+//            }
+//        } catch (SQLException e) {
+//            this.ln("Erreur lors de la récupération des restaurants : " + e.getMessage());
+//        }
     }
 
     /**
@@ -252,5 +244,19 @@ public class RestaurantCLI extends AbstractCLI {
         int index = this.readIntFromUser(allRestaurants.length - 1);
         return (Restaurant) allRestaurants[index];
     }
+
+    /**
+     * 📝 Affiche les détails complets d'un restaurant.
+     * @param restaurant Le restaurant à afficher.
+     */
+    private void displayRestaurant(Restaurant restaurant) {
+        this.ln(String.format("Nom: %s, Adresse: %s %s, %s %s",
+                restaurant.getName(),
+                restaurant.getAddress().getStreet(),
+                restaurant.getAddress().getStreetNumber(),
+                restaurant.getAddress().getPostalCode(),
+                restaurant.getAddress().getLocality()));
+    }
+
 
 }

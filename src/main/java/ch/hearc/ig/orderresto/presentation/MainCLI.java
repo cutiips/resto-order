@@ -3,8 +3,10 @@ package ch.hearc.ig.orderresto.presentation;
 import ch.hearc.ig.orderresto.business.Order;
 import ch.hearc.ig.orderresto.persistence.FakeDb;
 
+import java.sql.SQLException;
+
 public class MainCLI extends AbstractCLI {
-    public void run() {
+    public void run() throws SQLException {
         this.ln("======================================================");
         this.ln("Que voulez-vous faire ?");
         this.ln("0. Quitter l'application");
@@ -15,7 +17,7 @@ public class MainCLI extends AbstractCLI {
         this.handleUserChoice(userChoice);
     }
 
-    private void handleUserChoice(int userChoice) {
+    private void handleUserChoice(int userChoice) throws SQLException {
         if (userChoice == 0) {
             this.ln("Good bye!");
             return;
