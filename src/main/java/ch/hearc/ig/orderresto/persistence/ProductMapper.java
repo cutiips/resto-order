@@ -16,6 +16,10 @@ public class ProductMapper {
     private String username;
     private String password;
 
+    public ProductMapper() {
+        loadProperties();
+    }
+
     private void loadProperties() {
         Properties prop = new Properties();
         try (InputStream input = getClass().getClassLoader().getResourceAsStream("config.properties")) {
@@ -146,6 +150,33 @@ public class ProductMapper {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public List<Product> findByRestaurant(Restaurant restaurant) throws SQLException {
+        List<Product> products = new ArrayList<>();
+        String sql = "SELECT numero, nom, prix_unitaire, description FROM Produit WHERE fk_resto = ?";
+
+        try (
+                Connection connection = getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)) {
+                statement.setLong(1, restaurant.getId());
+                ResultSet rs = statement.executeQuery();
+
+            while (rs.next()) {
+                Long productId = rs.getLong("numero");
+                String name = rs.getString("nom");
+                BigDecimal price = rs.getBigDecimal("prix_unitaire");
+                String description = rs.getString("description");
+
+                // Créer un objet Product et l'ajouter à la liste
+                Product product = new Product(productId, name, price, description, restaurant);
+                products.add(product);
+            }
+        } catch (SQLException e) {
+            throw new SQLException("Erreur lors de la récupération des produits pour le restaurant avec ID " + restaurant.getId(), e);
+        }
+
+        return products;
     }
 
     // Méthode auxiliaire pour récupérer un restaurant par ID

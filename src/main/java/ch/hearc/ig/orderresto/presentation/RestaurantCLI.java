@@ -4,6 +4,7 @@ import ch.hearc.ig.orderresto.business.Address;
 import ch.hearc.ig.orderresto.business.Restaurant;
 import ch.hearc.ig.orderresto.persistence.FakeDb;
 import ch.hearc.ig.orderresto.persistence.RestaurantMapper;
+import ch.hearc.ig.orderresto.presentation.ProductCLI;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -160,8 +161,40 @@ public class RestaurantCLI extends AbstractCLI {
             Restaurant updatedRestaurant = new Restaurant(id, newName, updatedAddress);
             restaurantMapper.update(updatedRestaurant);
             this.ln("Restaurant mis à jour avec succès !");
+
+            manageRestaurantProducts(updatedRestaurant);
         } catch (SQLException e) {
             this.ln("Erreur lors de la mise à jour du restaurant : " + e.getMessage());
+        }
+    }
+
+    private void manageRestaurantProducts(Restaurant restaurant) throws SQLException {
+        ProductCLI productCLI = new ProductCLI();
+
+        while (true) {
+            this.ln("\nGestion des produits pour le restaurant " + restaurant.getName());
+            this.ln("1. Ajouter un nouveau produit");
+            this.ln("2. Mettre à jour un produit existant");
+            this.ln("3. Supprimer un produit");
+            this.ln("0. Retourner");
+
+            int choice = this.readIntFromUser(3);
+
+            switch (choice) {
+                case 1:
+                    productCLI.addProduct(restaurant);
+                    break;
+                case 2:
+                    productCLI.updateProduct(restaurant);
+                    break;
+                case 3:
+                    productCLI.deleteProduct();
+                    break;
+                case 0:
+                    return; // Quitte le menu de gestion des produits
+                default:
+                    this.ln("Choix non valide, veuillez réessayer.");
+            }
         }
     }
 
