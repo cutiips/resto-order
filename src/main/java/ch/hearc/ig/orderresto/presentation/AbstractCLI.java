@@ -1,5 +1,7 @@
 package ch.hearc.ig.orderresto.presentation;
 
+import ch.hearc.ig.orderresto.business.Address;
+
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.InputMismatchException;
@@ -104,5 +106,20 @@ public abstract class AbstractCLI {
             }
         }
         return input;
+    }
+
+    protected Address readAddressFromUser() {
+        this.ln("Code du pays : ");
+        String countryCode = this.readStringFromUser();
+        this.ln("Code postal : ");
+        String postalCode = this.readStringFromUser();
+        this.ln("Localité : ");
+        String locality = this.readStringFromUser();
+        this.ln("Rue : ");
+        String street = this.readStringFromUser();
+        this.ln("Numéro de rue : ");
+        String streetNumber = this.readStringFromUser();
+
+        return new Address(countryCode, postalCode, locality, street, streetNumber);
     }
 }
