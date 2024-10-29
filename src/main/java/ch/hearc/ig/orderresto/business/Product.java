@@ -20,7 +20,7 @@ public class Product {
         this.description = description;
         this.orders = new HashSet<>();
         this.restaurant = restaurant;
-        restaurant.registerProduct(this);
+        restaurant.registerProduct(this); // sert à ajouter le produit au restaurant
     }
 
     public Long getId() {
@@ -60,5 +60,12 @@ public class Product {
 
     public void addOrder(Order order) {
         this.orders.add(order);
+    }
+
+    public void setRestaurant(Restaurant restaurant) {
+        this.restaurant = restaurant;
+        if (restaurant != null) {
+            restaurant.registerProduct(this);
+        }
     }
 }
