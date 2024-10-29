@@ -62,10 +62,14 @@ public abstract class AbstractCLI {
         return input;
     }
 
-    // update minLength to 0 (before = 1)
     protected String readStringFromUser() {
+        return this.readStringFromUser(1, 255, null);
+    }
+
+    protected String readStringFromUserAllowEmpty() {
         return this.readStringFromUser(0, 255, null);
     }
+
 
     protected String readEmailFromUser() {
         String input = null;
