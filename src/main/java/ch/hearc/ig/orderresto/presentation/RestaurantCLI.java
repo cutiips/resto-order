@@ -114,19 +114,19 @@ public class RestaurantCLI extends AbstractCLI {
             }
 
             this.ln("Nouveau nom (actuel : " + existingRestaurant.getName() + ", appuyez sur Entrée pour garder inchangé) : ");
-            String newName = this.readStringFromUser();
+            String newName = this.readStringFromUserAllowEmpty();
             if (newName == null || newName.isEmpty()) {
                 newName = existingRestaurant.getName();
             }
 
             this.ln("Nouveau code postal (actuel : " + existingRestaurant.getAddress().getPostalCode() + ", appuyez sur Entrée pour garder inchangé) : ");
-            String newPostalCode = this.readStringFromUser();
+            String newPostalCode = this.readStringFromUserAllowEmpty();
             if (newPostalCode.isEmpty()) {
                 newPostalCode = existingRestaurant.getAddress().getPostalCode();
             }
 
             this.ln("Nouveau code pays (actuel : " + existingRestaurant.getAddress().getCountryCode() + ", appuyez sur Entrée pour garder inchangé) : ");
-            String newCountryCode = this.readStringFromUser();
+            String newCountryCode = this.readStringFromUserAllowEmpty();
             this.ln("newCountryCode - update: " + newCountryCode);
             if (newCountryCode.isEmpty()) {
                 newCountryCode = existingRestaurant.getAddress().getCountryCode();
@@ -134,19 +134,19 @@ public class RestaurantCLI extends AbstractCLI {
             }
 
             this.ln("Nouvelle localité (actuel : " + existingRestaurant.getAddress().getLocality() + ", appuyez sur Entrée pour garder inchangé) : ");
-            String newLocality = this.readStringFromUser();
+            String newLocality = this.readStringFromUserAllowEmpty();
             if (newLocality.isEmpty()) {
                 newLocality = existingRestaurant.getAddress().getLocality();
             }
 
             this.ln("Nouvelle rue (actuel : " + existingRestaurant.getAddress().getStreet() + ", appuyez sur Entrée pour garder inchangé) : ");
-            String newStreet = this.readStringFromUser();
+            String newStreet = this.readStringFromUserAllowEmpty();
             if (newStreet.isEmpty()) {
                 newStreet = existingRestaurant.getAddress().getStreet();
             }
 
             this.ln("Nouveau numéro de rue (actuel : " + existingRestaurant.getAddress().getStreetNumber() + ", appuyez sur Entrée pour garder inchangé) : ");
-            String newStreetNumber = this.readStringFromUser();
+            String newStreetNumber = this.readStringFromUserAllowEmpty();
             if (newStreetNumber.isEmpty()) {
                 newStreetNumber = existingRestaurant.getAddress().getStreetNumber();
             }
@@ -160,9 +160,10 @@ public class RestaurantCLI extends AbstractCLI {
             );
             Restaurant updatedRestaurant = new Restaurant(id, newName, updatedAddress);
             restaurantMapper.update(updatedRestaurant);
-            this.ln("Restaurant mis à jour avec succès !");
 
             manageRestaurantProducts(updatedRestaurant);
+            this.ln("Restaurant mis à jour avec succès !");
+
         } catch (SQLException e) {
             this.ln("Erreur lors de la mise à jour du restaurant : " + e.getMessage());
         }
