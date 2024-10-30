@@ -4,8 +4,9 @@ import ch.hearc.ig.orderresto.business.Customer;
 import ch.hearc.ig.orderresto.business.Order;
 import ch.hearc.ig.orderresto.business.Product;
 import ch.hearc.ig.orderresto.business.Restaurant;
+import ch.hearc.ig.orderresto.exceptions.CustomerPersistenceException;
 import ch.hearc.ig.orderresto.exceptions.ProductPersistenceException;
-import ch.hearc.ig.orderresto.persistence.FakeDb;
+import ch.hearc.ig.orderresto.exceptions.RestaurantPersistenceException;
 
 import java.sql.SQLException;
 import java.time.LocalDateTime;
@@ -13,7 +14,7 @@ import java.time.format.DateTimeFormatter;
 
 public class OrderCLI extends AbstractCLI {
 
-    public Order createNewOrder() throws ProductPersistenceException, SQLException {
+    public Order createNewOrder() throws ProductPersistenceException, SQLException, RestaurantPersistenceException {
 
         this.ln("======================================================");
         Restaurant restaurant = (new RestaurantCLI()).displayRestaurantIdsAndNames();
@@ -50,7 +51,7 @@ public class OrderCLI extends AbstractCLI {
         return order;
     }
 
-    public Order selectOrder() {
+    public Order selectOrder() throws CustomerPersistenceException {
         Customer customer = (new CustomerCLI()).getExistingCustomer();
         Object[] orders = customer.getOrders().toArray();
         if (orders.length == 0) {
