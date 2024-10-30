@@ -1,13 +1,11 @@
 package ch.hearc.ig.orderresto.persistence;
 
 import ch.hearc.ig.orderresto.business.Address;
+import ch.hearc.ig.orderresto.business.Product;
 import ch.hearc.ig.orderresto.business.Restaurant;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
-import java.io.InputStream;
-import java.io.IOException;
 
 import java.sql.SQLException;
 
@@ -15,36 +13,8 @@ import java.sql.SQLException;
  * 🚀 Responsable du mapping des entités "Restaurant" et "Address" dans la db
  * Cette classe gère la connexion à la base de données et l'insertion des restaurants et adresses
  */
-public class RestaurantMapper {
-    private String url;
-    private String username;
-    private String password;
-
-    public RestaurantMapper() {
-        loadProperties();
-    }
-
-    private void loadProperties() {
-        Properties prop = new Properties();
-        try (InputStream input = getClass().getClassLoader().getResourceAsStream("config.properties")) {
-            if (input == null) {
-                System.out.println("Sorry, unable to find config.properties");
-                return;
-            }
-            prop.load(input);
-            url = prop.getProperty("db.url");
-            username = prop.getProperty("db.username");
-            password = prop.getProperty("db.password");
-        } catch (IOException ex) {
-            System.err.println("Error loading properties: " + ex.getMessage());
-            throw new RuntimeException("Database configuration error", ex);
-        }
-    }
-
-    private Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(url, username, password);
-    }
-
+public class RestaurantMapper extends BaseMapper {
+    private final ProductMapper productMapper = new ProductMapper();
     /**
      * 🚀 Insertion d'un restaurant directement dans la table RESTAURANT (avec l'adresse incluse dans les colonnes du restaurant
      * 💡 PAS DE MAJ DU SCRIPTS
@@ -60,22 +30,13 @@ public class RestaurantMapper {
 
             stmt.setString(1, restaurant.getName());
 
-            address(restaurant, stmt);
+            AddressUtils.setPreparedStatementAddress(stmt, restaurant.getAddress(), 2);
 
             stmt.executeUpdate();
         } catch (SQLException e) {
             System.err.println("Erreur lors de l'insertion du restaurant : " + e.getMessage());
             throw e;
         }
-    }
-
-    private void address(Restaurant restaurant, PreparedStatement stmt) throws SQLException {
-        Address address = restaurant.getAddress();
-        stmt.setString(2, address.getPostalCode());
-        stmt.setString(3, address.getLocality());
-        stmt.setString(4, address.getStreet());
-        stmt.setString(5, address.getStreetNumber());
-        stmt.setString(6, address.getCountryCode());
     }
 
     /**
@@ -92,13 +53,7 @@ public class RestaurantMapper {
             stmt.setLong(1, id);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                Address address = new Address(
-                        rs.getString("pays"),
-                        rs.getString("code_postal"),
-                        rs.getString("localite"),
-                        rs.getString("rue"),
-                        rs.getString("num_rue")
-                );
+                Address address = AddressUtils.createAddressFromResultSet(rs);
                 return new Restaurant(id, rs.getString("nom"), address);
             }
         } catch (SQLException e) {
@@ -122,7 +77,7 @@ public class RestaurantMapper {
             stmt.setString(1, restaurant.getName());
             System.out.println("update - restaurant.getName(): " + restaurant.getName());
 
-            address(restaurant, stmt);
+            AddressUtils.setPreparedStatementAddress(stmt, restaurant.getAddress(), 2);
             stmt.setLong(7, restaurant.getId());
 
 
@@ -166,13 +121,7 @@ public class RestaurantMapper {
              ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
-                Address address = new Address(
-                        rs.getString("pays"),
-                        rs.getString("code_postal"),
-                        rs.getString("localite"),
-                        rs.getString("rue"),
-                        rs.getString("num_rue")
-                );
+                Address address = AddressUtils.createAddressFromResultSet(rs);
                 Restaurant restaurant = new Restaurant(
                         rs.getLong("numero"),
                         rs.getString("nom"),
