@@ -18,7 +18,12 @@ public class OrderCLI extends AbstractCLI {
         this.ln("======================================================");
         Restaurant restaurant = (new RestaurantCLI()).displayRestaurantIdsAndNames();
 
-        Product product = (new ProductCLI()).getRestaurantProduct(restaurant);
+        ProductCLI productCLI = new ProductCLI();
+        Product selectedProduct = productCLI.getRestaurantProduct(restaurant);
+
+        if (selectedProduct != null) {
+            System.out.println("Produit sélectionné : " + selectedProduct.getName());
+        }
 
         this.ln("======================================================");
         this.ln("0. Annuler");
@@ -43,10 +48,10 @@ public class OrderCLI extends AbstractCLI {
         // - ask whether it's a takeAway order or not?
         // - Ask user for multiple products?
         Order order = new Order(null, customer, restaurant, false, LocalDateTime.now());
-        order.addProduct(product);
+        order.addProduct(selectedProduct);
 
         // Actually place the order (this could/should be in a different method?)
-        product.addOrder(order);
+        selectedProduct.addOrder(order);
         restaurant.addOrder(order);
         customer.addOrder(order);
 
