@@ -14,7 +14,7 @@ public class ProductCLI extends AbstractCLI {
 
     private final ProductMapper productMapper = new ProductMapper();
 
-    public void run(Restaurant restaurant) throws SQLException {
+    public void run(Restaurant restaurant) throws SQLException, ProductPersistenceException {
         this.ln("======================================================");
         this.ln("Gestion des produits pour le restaurant : " + restaurant.getName());
         this.ln("0. Retour au menu principal");
@@ -27,7 +27,7 @@ public class ProductCLI extends AbstractCLI {
         this.handleUserChoice(userChoice, restaurant);
     }
 
-    private void handleUserChoice(int userChoice, Restaurant restaurant) throws SQLException {
+    private void handleUserChoice(int userChoice, Restaurant restaurant) throws SQLException, ProductPersistenceException {
         switch (userChoice) {
             case 0:
                 return;
@@ -49,7 +49,7 @@ public class ProductCLI extends AbstractCLI {
         this.run(restaurant);
     }
 
-    public void addProduct(Restaurant restaurant) throws SQLException {
+    public void addProduct(Restaurant restaurant) throws SQLException, ProductPersistenceException {
         this.ln("Ajouter un nouveau produit - nom du produit : ");
         String name = this.readStringFromUser();
 
@@ -65,7 +65,7 @@ public class ProductCLI extends AbstractCLI {
         this.ln("Produit ajouté avec succès !");
     }
 
-    public void updateProduct(Restaurant restaurant) throws SQLException {
+    public void updateProduct(Restaurant restaurant) throws SQLException, ProductPersistenceException {
         this.ln("Voici la liste des produits (ID et Nom) :");
         displayProductsForRestaurant(restaurant);  // Affichage des ID et noms des produits
 
@@ -98,7 +98,7 @@ public class ProductCLI extends AbstractCLI {
         this.ln("Produit mis à jour avec succès !");
     }
 
-    public void deleteProduct() throws SQLException {
+    public void deleteProduct() throws SQLException, ProductPersistenceException {
         this.ln("Entrez l'ID du produit à supprimer : ");
         Long id = this.readLongFromUser();
         productMapper.delete(id);
