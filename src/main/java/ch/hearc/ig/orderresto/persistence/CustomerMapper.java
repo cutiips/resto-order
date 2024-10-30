@@ -4,7 +4,7 @@ import ch.hearc.ig.orderresto.business.Customer;
 import ch.hearc.ig.orderresto.business.OrganizationCustomer;
 import ch.hearc.ig.orderresto.business.PrivateCustomer;
 import ch.hearc.ig.orderresto.business.Address;
-// TODO : ajouter un dossier Utils
+import ch.hearc.ig.orderresto.exceptions.CustomerPersistenceException;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -14,7 +14,7 @@ import java.sql.SQLException;
 
 public class CustomerMapper extends BaseMapper{
 
-    public void insert(Customer customer) throws SQLException {
+    public void insert(Customer customer) throws CustomerPersistenceException {
         String query = "INSERT INTO CLIENT (email, telephone, nom, code_postal, localite, rue, num_rue, pays, est_une_femme, prenom, forme_sociale, type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = getConnection();
@@ -45,12 +45,11 @@ public class CustomerMapper extends BaseMapper{
 
             stmt.executeUpdate();
         } catch (SQLException e) {
-            System.err.println("Erreur lors de l'insertion du client : " + e.getMessage());
-            throw e;
+            throw new CustomerPersistenceException("Erreur lors de l'insertion du client", e);
         }
     }
 
-    public Customer read(String email) throws SQLException {
+    public Customer read(String email) throws CustomerPersistenceException {
         String query = "SELECT * FROM CLIENT WHERE email = ?";
         Customer customer = null;
 
@@ -82,15 +81,14 @@ public class CustomerMapper extends BaseMapper{
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la lecture du client : " + e.getMessage());
-            throw e;
+            throw new CustomerPersistenceException("Erreur lors de la lecture du client", e);
         }
 
         return customer;
     }
 
     // UPDATE
-    public void update(Customer customer) throws SQLException {
+    public void update(Customer customer) throws CustomerPersistenceException {
         String query = "UPDATE CLIENT SET telephone = ?, nom = ?, code_postal = ?, localite = ?, rue = ?, num_rue = ?, pays = ?, est_une_femme = ?, prenom = ?, forme_sociale = ? WHERE email = ?";
 
         try (Connection conn = getConnection();
@@ -117,13 +115,12 @@ public class CustomerMapper extends BaseMapper{
             stmt.setString(11, customer.getEmail());
             stmt.executeUpdate();
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la mise à jour du client : " + e.getMessage());
-            throw e;
+            throw new CustomerPersistenceException("Erreur lors de la mise à jour du client", e);
         }
     }
 
     // DELETE
-    public void delete(String email) throws SQLException {
+    public void delete(String email) throws CustomerPersistenceException {
         String query = "DELETE FROM CLIENT WHERE email = ?";
 
         try (Connection conn = getConnection();
@@ -132,8 +129,7 @@ public class CustomerMapper extends BaseMapper{
             stmt.setString(1, email);
             stmt.executeUpdate();
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la suppression du client : " + e.getMessage());
-            throw e;
+            throw new CustomerPersistenceException("Erreur lors de la suppression du client", e);
         }
     }
 }

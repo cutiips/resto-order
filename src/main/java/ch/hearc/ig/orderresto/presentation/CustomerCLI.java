@@ -4,17 +4,16 @@ import ch.hearc.ig.orderresto.business.Address;
 import ch.hearc.ig.orderresto.business.Customer;
 import ch.hearc.ig.orderresto.business.OrganizationCustomer;
 import ch.hearc.ig.orderresto.business.PrivateCustomer;
+import ch.hearc.ig.orderresto.exceptions.CustomerPersistenceException;
 import ch.hearc.ig.orderresto.persistence.CustomerMapper;
-import ch.hearc.ig.orderresto.persistence.FakeDb;
 
-import java.sql.SQLException;
 import java.util.Objects;
 
 public class CustomerCLI extends AbstractCLI {
 
     private final CustomerMapper customerMapper = new CustomerMapper();
 
-    public void run() throws SQLException {
+    public void run() {
         this.ln("======================================================");
         this.ln("0. Retour au menu principal");
         this.ln("1. Nouveau client");
@@ -74,18 +73,18 @@ public class CustomerCLI extends AbstractCLI {
         try {
             customerMapper.insert(customer);
             this.ln("Client ajouté avec succès !");
-        } catch (SQLException e) {
+        } catch (CustomerPersistenceException e) {
             this.ln("Erreur lors de l'insertion du client : " + e.getMessage());
         }
     }
 
-    public Customer getExistingCustomer(){
+    public Customer getExistingCustomer() {
         this.ln("Quelle est votre addresse email?");
         String email = this.readEmailFromUser();
 
         try {
             return customerMapper.read(email);
-        } catch (SQLException e) {
+        } catch (CustomerPersistenceException e) {
             this.ln("Erreur lors de la lecture du client : " + e.getMessage());
             return null;
         }
