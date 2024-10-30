@@ -25,23 +25,13 @@ public class OrderCLI extends AbstractCLI {
             System.out.println("Produit sélectionné : " + selectedProduct.getName());
         }
 
-        this.ln("======================================================");
-        this.ln("0. Annuler");
-        this.ln("1. Je suis un client existant");
-        this.ln("2. Je suis un nouveau client");
-
-        int userChoice = this.readIntFromUser(2);
-        if (userChoice == 0) {
-            (new MainCLI()).run();
-            return null;
-        }
         CustomerCLI customerCLI = new CustomerCLI();
-        Customer customer = null;
-        if (userChoice == 1) {
+        Customer customer = customerCLI.getExistingCustomer();
+
+        if (customer == null) {
+            this.ln("Client non trouvé. Création d'un nouveau client...");
+            customerCLI.addCustomer();
             customer = customerCLI.getExistingCustomer();
-        } else {
-            customer = customerCLI.createNewCustomer();
-            FakeDb.addCustomer(customer);
         }
 
         // Possible improvements:
