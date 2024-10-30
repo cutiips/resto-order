@@ -1,8 +1,9 @@
 package ch.hearc.ig.orderresto.persistence;
 
 import ch.hearc.ig.orderresto.business.Address;
-import ch.hearc.ig.orderresto.business.Product;
 import ch.hearc.ig.orderresto.business.Restaurant;
+import ch.hearc.ig.orderresto.exceptions.RestaurantPersistenceException;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +22,7 @@ public class RestaurantMapper extends BaseMapper {
      * @param restaurant Le restaurant est inséré avec son adresse.
      * @throws SQLException Si une erreur se produit lors de l'insertion dans la base de données.
      */
-    public void insert(Restaurant restaurant) throws SQLException {
+    public void insert(Restaurant restaurant) throws RestaurantPersistenceException {
         String query = "INSERT INTO RESTAURANT (nom, code_postal, localite, rue, num_rue, pays) " +
                 "VALUES (?, ?, ?, ?, ?, ?)";
 
@@ -34,8 +35,7 @@ public class RestaurantMapper extends BaseMapper {
 
             stmt.executeUpdate();
         } catch (SQLException e) {
-            System.err.println("Erreur lors de l'insertion du restaurant : " + e.getMessage());
-            throw e;
+            throw new RestaurantPersistenceException("Erreur lors de l'insertion du restaurant : ", e);
         }
     }
 
@@ -45,7 +45,7 @@ public class RestaurantMapper extends BaseMapper {
      * @return Le restaurant correspondant à l'ID fourni, ou null s'il n'est pas trouvé.
      * @throws SQLException Si une erreur survient lors de la requête SQL.
      */
-    public Restaurant findById(Long id) throws SQLException {
+    public Restaurant findById(Long id) throws RestaurantPersistenceException {
         String query = "SELECT nom, code_postal, localite, rue, num_rue, pays FROM RESTAURANT WHERE numero = ?";
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -57,8 +57,7 @@ public class RestaurantMapper extends BaseMapper {
                 return new Restaurant(id, rs.getString("nom"), address);
             }
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la récupération du restaurant : " + e.getMessage());
-            throw e;
+            throw new RestaurantPersistenceException("Erreur lors de la récupération du restaurant : ", e);
         }
         return null;  // 404
     }
@@ -68,7 +67,7 @@ public class RestaurantMapper extends BaseMapper {
      * @param restaurant Le restaurant avec les nouvelles informations à mettre à jour.
      * @throws SQLException Si une erreur survient lors de la mise à jour des données.
      */
-    public void update(Restaurant restaurant) throws SQLException {
+    public void update(Restaurant restaurant) throws RestaurantPersistenceException {
         String query = "UPDATE RESTAURANT SET nom = ?, code_postal = ?, localite = ?, rue = ?, num_rue = ?, pays = ? WHERE numero = ?";
 
         try (Connection conn = getConnection();
@@ -83,8 +82,7 @@ public class RestaurantMapper extends BaseMapper {
 
             stmt.executeUpdate();
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la mise à jour du restaurant : " + e.getMessage());
-            throw e;
+            throw new RestaurantPersistenceException("Erreur lors de la mise à jour du restaurant : ", e);
         }
     }
 
@@ -93,7 +91,7 @@ public class RestaurantMapper extends BaseMapper {
      * @param id L'identifiant du restaurant à supprimer.
      * @throws SQLException Si une erreur survient lors de la suppression.
      */
-    public void delete(Long id) throws SQLException {
+    public void delete(Long id) throws RestaurantPersistenceException {
         String query = "DELETE FROM RESTAURANT WHERE numero = ?";
 
         try (Connection conn = getConnection();
@@ -102,8 +100,7 @@ public class RestaurantMapper extends BaseMapper {
             stmt.setLong(1, id);
             stmt.executeUpdate();
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la suppression du restaurant : " + e.getMessage());
-            throw e;
+            throw new RestaurantPersistenceException("Erreur lors de la suppression du restaurant : ", e);
         }
     }
 
@@ -112,7 +109,7 @@ public class RestaurantMapper extends BaseMapper {
      * @return Une liste contenant tous les restaurants.
      * @throws SQLException Si une erreur survient lors de la récupération des données.
      */
-    public List<Restaurant> findAll() throws SQLException {
+    public List<Restaurant> findAll() throws RestaurantPersistenceException {
         List<Restaurant> restaurants = new ArrayList<>();
         String query = "SELECT numero, nom, code_postal, localite, rue, num_rue, pays FROM RESTAURANT";
 
@@ -130,8 +127,7 @@ public class RestaurantMapper extends BaseMapper {
                 restaurants.add(restaurant);
             }
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la récupération des restaurants : " + e.getMessage());
-            throw e;
+            throw new RestaurantPersistenceException("Erreur lors de la récupération des restaurants : ", e);
         }
         return restaurants;
     }

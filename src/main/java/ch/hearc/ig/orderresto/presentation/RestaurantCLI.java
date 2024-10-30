@@ -2,6 +2,8 @@ package ch.hearc.ig.orderresto.presentation;
 
 import ch.hearc.ig.orderresto.business.Address;
 import ch.hearc.ig.orderresto.business.Restaurant;
+import ch.hearc.ig.orderresto.exceptions.ProductPersistenceException;
+import ch.hearc.ig.orderresto.exceptions.RestaurantPersistenceException;
 import ch.hearc.ig.orderresto.persistence.FakeDb;
 import ch.hearc.ig.orderresto.persistence.RestaurantMapper;
 import ch.hearc.ig.orderresto.presentation.ProductCLI;
@@ -21,7 +23,7 @@ public class RestaurantCLI extends AbstractCLI {
      * 🎛️ Démarre le menu de gestion des restaurants.
      * Affiche les options et permet à l'utilisateur de sélectionner une action.
      */
-    public void run() throws SQLException {
+    public void run() throws SQLException, RestaurantPersistenceException {
         this.ln("======================================================");
         this.ln("Gestion des restaurants");
         this.ln("0. Retour au menu principal");
@@ -39,7 +41,7 @@ public class RestaurantCLI extends AbstractCLI {
      * Exécute l'action correspondante en fonction du choix.
      * @param userChoice Choix de l'utilisateur (de 0 à 5).
      */
-    private void handleUserChoice(int userChoice) throws SQLException {
+    private void handleUserChoice(int userChoice) throws SQLException, RestaurantPersistenceException {
         switch (userChoice) {
             case 0:
                 return;
@@ -72,25 +74,15 @@ public class RestaurantCLI extends AbstractCLI {
         this.ln("Ajouter un nouveau restaurant - nom du restaurant : ");
         String name = this.readStringFromUser();
 
+        readAddressFromUser();
+        Address address = readAddressFromUser();
 
-        this.ln("Code du pays : ");
-        String countryCode = this.readStringFromUser();
-        this.ln("Code postal : ");
-        String postalCode = this.readStringFromUser();
-        this.ln("Localité : ");
-        String locality = this.readStringFromUser();
-        this.ln("Rue : ");
-        String street = this.readStringFromUser();
-        this.ln("Numéro de rue : ");
-        String streetNumber = this.readStringFromUser();
-
-        Address address = new Address(countryCode, postalCode, locality, street, streetNumber);
         Restaurant restaurant = new Restaurant(null, name, address);
 
         try {
             restaurantMapper.insert(restaurant);
             this.ln("Restaurant ajouté avec succès !");
-        } catch (SQLException e) {
+        } catch (RestaurantPersistenceException e) {
             this.ln("Erreur lors de l'insertion du restaurant : " + e.getMessage());
         }
     }
@@ -100,7 +92,7 @@ public class RestaurantCLI extends AbstractCLI {
      * Demande l'ID du restaurant à mettre à jour, puis les nouvelles informations.
      * Si une entrée est vide, conserve l'ancienne valeur.
      */
-    private void updateRestaurant() throws SQLException {
+    private void updateRestaurant() throws SQLException, RestaurantPersistenceException {
         this.ln("Voici la liste des restaurants (ID et Nom) :");
         displayRestaurantIdsAndNames();  // Affichage uniquement des ID et noms des restaurants
 
@@ -164,12 +156,12 @@ public class RestaurantCLI extends AbstractCLI {
             manageRestaurantProducts(updatedRestaurant);
             this.ln("Restaurant mis à jour avec succès !");
 
-        } catch (SQLException e) {
+        } catch (SQLException | ProductPersistenceException e) {
             this.ln("Erreur lors de la mise à jour du restaurant : " + e.getMessage());
         }
     }
 
-    private void manageRestaurantProducts(Restaurant restaurant) throws SQLException {
+    private void manageRestaurantProducts(Restaurant restaurant) throws SQLException, ProductPersistenceException {
         ProductCLI productCLI = new ProductCLI();
 
         while (true) {
@@ -203,18 +195,15 @@ public class RestaurantCLI extends AbstractCLI {
      * 🗑️ Supprime un restaurant par son ID.
      * Affiche la liste des restaurants avec leurs ID pour que l'utilisateur puisse choisir.
      */
-    private void deleteRestaurant() throws SQLException {
+    private void deleteRestaurant() throws SQLException, RestaurantPersistenceException {
         this.ln("Voici la liste des restaurants (ID et Nom) :");
         displayRestaurantIdsAndNames();
 
         this.ln("Entrez l'ID du restaurant à supprimer : ");
         Long id = this.readLongFromUser();
-        try {
-            restaurantMapper.delete(id);
-            this.ln("Restaurant supprimé avec succès !");
-        } catch (SQLException e) {
-            this.ln("Erreur lors de la suppression du restaurant : " + e.getMessage());
-        }
+        restaurantMapper.delete(id);
+        this.ln("Restaurant supprimé avec succès !");
+
     }
 
     /**
@@ -231,8 +220,8 @@ public class RestaurantCLI extends AbstractCLI {
                     displayRestaurant(restaurant);
                 }
             }
-        } catch (SQLException e) {
-            this.ln("Erreur lors de la récupération des restaurants : " + e.getMessage());
+        } catch (RestaurantPersistenceException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -240,7 +229,7 @@ public class RestaurantCLI extends AbstractCLI {
      * 📄 Affiche uniquement les IDs et les noms des restaurants.
      * Utile pour la mise à jour ou la suppression des restaurants.
      */
-    public Restaurant displayRestaurantIdsAndNames() throws SQLException {
+    public Restaurant displayRestaurantIdsAndNames() throws RestaurantPersistenceException {
         this.ln("Choisissez un restaurant:");
         List<Restaurant> allRestaurants = restaurantMapper.findAll();
         for (int i = 0 ; i < allRestaurants.size() ; i++) {
