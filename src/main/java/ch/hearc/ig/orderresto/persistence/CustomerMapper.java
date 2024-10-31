@@ -132,4 +132,45 @@ public class CustomerMapper extends BaseMapper{
             throw new CustomerPersistenceException("Erreur lors de la suppression du client", e);
         }
     }
+
+    //TODO : implémenter recherche par id d'un customer
+    public Customer findById(Long id) throws CustomerPersistenceException {
+        String query = "SELECT * FROM CLIENT WHERE numero = ?";
+        Customer customer = null;
+
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+
+            stmt.setLong(1, id);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                String type = rs.getString("type");
+                String telephone = rs.getString("telephone");
+                String email = rs.getString("email");
+                String nom = rs.getString("nom");
+                String codePostal = rs.getString("code_postal");
+                String localite = rs.getString("localite");
+                String rue = rs.getString("rue");
+                String numRue = rs.getString("num_rue");
+                String pays = rs.getString("pays");
+                String estUneFemme = rs.getString("est_une_femme");
+                String prenom = rs.getString("prenom");
+                String formeSociale = rs.getString("forme_sociale");
+
+                Address address = new Address(codePostal, localite, rue, numRue, pays);
+
+                if ("P".equals(type)) {
+                    customer = new PrivateCustomer(id, telephone, email, address, estUneFemme, prenom, nom);
+                } else if ("O".equals(type)) {
+                    customer = new OrganizationCustomer(id, telephone, email, address, nom, formeSociale);
+                }
+            }
+        } catch (SQLException e) {
+            throw new CustomerPersistenceException("Erreur lors de la recherche du client par ID", e);
+        }
+
+        return customer;
+    }
+
 }
