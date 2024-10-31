@@ -67,16 +67,31 @@ public class ProductCLI extends AbstractCLI {
 
     public void updateProduct(Restaurant restaurant) throws SQLException, ProductPersistenceException {
         this.ln("Voici la liste des produits (ID et Nom) :");
-        displayProductsForRestaurant(restaurant);  // Affichage des ID et noms des produits
 
-        this.ln("Entrez l'ID du produit à mettre à jour : ");
-        Long id = this.readLongFromUser();
-        Product existingProduct = productMapper.findById(id);
-        if (existingProduct == null) {
-            this.ln("Produit non trouvé.");
+        // Récupérer les produits associés au restaurant
+        List<Product> products = productMapper.getProductsByRestaurantId(restaurant.getId());
+
+        if (products.isEmpty()) {
+            this.ln("Aucun produit trouvé pour ce restaurant.");
             return;
         }
 
+        // Afficher la liste des produits pour que l’utilisateur puisse sélectionner un produit par son ID
+        for (Product product : products) {
+            this.ln("ID: " + product.getId() + " - Nom: " + product.getName());
+        }
+
+        this.ln("Entrez l'ID du produit à mettre à jour : ");
+        Long id = this.readLongFromUser();
+
+        // Vérifier si le produit existe
+        Product existingProduct = productMapper.findById(id);
+        if (existingProduct == null || !existingProduct.getRestaurant().getId().equals(restaurant.getId())) {
+            this.ln("Produit non trouvé ou n'appartient pas à ce restaurant.");
+            return;
+        }
+
+        // Demander à l'utilisateur les nouvelles valeurs pour les champs, en conservant les valeurs existantes si rien n'est entré
         this.ln("Nouveau nom (actuel : " + existingProduct.getName() + ", appuyez sur Entrée pour garder inchangé) : ");
         String newName = this.readStringFromUser();
         if (newName.isEmpty()) {
@@ -93,10 +108,14 @@ public class ProductCLI extends AbstractCLI {
             newDescription = existingProduct.getDescription();
         }
 
+        // Créer un nouvel objet Product avec les valeurs mises à jour et l’ID du produit existant
         Product updatedProduct = new Product(id, newName, newUnitPrice, newDescription, restaurant);
+
+        // Mettre à jour le produit dans la base de données
         productMapper.update(updatedProduct);
         this.ln("Produit mis à jour avec succès !");
     }
+
 
     public void deleteProduct() throws SQLException, ProductPersistenceException {
         this.ln("Entrez l'ID du produit à supprimer : ");

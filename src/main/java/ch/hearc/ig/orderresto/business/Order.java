@@ -29,8 +29,16 @@ public class Order {
         return id;
     }
 
+    public void setId(Long id){
+        this.id = id ;
+    }
+
     public Customer getCustomer() {
         return customer;
+    }
+
+    public void setCustomer(Customer customer) {
+        this.customer = customer ;
     }
 
     public Restaurant getRestaurant() {
@@ -43,6 +51,10 @@ public class Order {
 
     public Boolean getTakeAway() {
         return takeAway;
+    }
+
+    public void setTakeAway(boolean takeAway) {
+        this.takeAway = takeAway ;
     }
 
     public LocalDateTime getWhen() {
