@@ -18,8 +18,9 @@ public class CustomerMapper extends BaseMapper{
         String query = "INSERT INTO CLIENT (email, telephone, nom, code_postal, localite, rue, num_rue, pays, est_une_femme, prenom, forme_sociale, type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+             PreparedStatement stmt = conn.prepareStatement(query, new String[]{"numero"})) {  // Spécifie la colonne générée "numero" pour Customer
 
+            // Remplissage des paramètres du PreparedStatement
             stmt.setString(1, customer.getEmail());
             stmt.setString(2, customer.getPhone());
 
@@ -32,9 +33,7 @@ public class CustomerMapper extends BaseMapper{
                 stmt.setString(10, privateCustomer.getFirstName());
                 stmt.setNull(11, java.sql.Types.VARCHAR); // Forme sociale pour client privé
                 stmt.setString(12, "P"); // Type pour client privé
-            }
-
-            else if (customer instanceof OrganizationCustomer) {
+            } else if (customer instanceof OrganizationCustomer) {
                 OrganizationCustomer organizationCustomer = (OrganizationCustomer) customer;
                 stmt.setString(3, organizationCustomer.getName()); // Nom de l'organisation
                 stmt.setNull(9, java.sql.Types.VARCHAR); // Sexe pour client organisation
@@ -43,11 +42,22 @@ public class CustomerMapper extends BaseMapper{
                 stmt.setString(12, "O"); // Type pour client organisation
             }
 
+            // Exécuter l'insertion
             stmt.executeUpdate();
+
+            // Récupérer l'ID généré
+            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    customer.setId(generatedKeys.getLong(1)); // Assigne l'ID généré au Customer
+                } else {
+                    throw new CustomerPersistenceException("Échec de l'insertion du client, aucun ID généré.");
+                }
+            }
         } catch (SQLException e) {
             throw new CustomerPersistenceException("Erreur lors de l'insertion du client", e);
         }
     }
+
 
     public Customer read(String email) throws CustomerPersistenceException {
         String query = "SELECT * FROM CLIENT WHERE email = ?";
@@ -71,13 +81,14 @@ public class CustomerMapper extends BaseMapper{
                 String estUneFemme = rs.getString("est_une_femme");
                 String prenom = rs.getString("prenom");
                 String formeSociale = rs.getString("forme_sociale");
+                Long id = rs.getLong("numero") ;
 
                 Address address = new Address(codePostal, localite, rue, numRue, pays); // Assumez que vous avez un constructeur approprié
 
                 if ("P".equals(type)) {
-                    customer = new PrivateCustomer(null, telephone, email, address, estUneFemme, prenom, nom);
+                    customer = new PrivateCustomer(id, telephone, email, address, estUneFemme, prenom, nom);
                 } else if ("O".equals(type)) {
-                    customer = new OrganizationCustomer(null, telephone, email, address, nom, formeSociale);
+                    customer = new OrganizationCustomer(id, telephone, email, address, nom, formeSociale);
                 }
             }
         } catch (SQLException e) {

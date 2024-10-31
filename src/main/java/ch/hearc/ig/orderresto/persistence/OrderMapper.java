@@ -4,6 +4,9 @@ import ch.hearc.ig.orderresto.business.Customer;
 import ch.hearc.ig.orderresto.business.Order;
 import ch.hearc.ig.orderresto.business.Product;
 import ch.hearc.ig.orderresto.business.Restaurant;
+import ch.hearc.ig.orderresto.exceptions.CustomerPersistenceException;
+import ch.hearc.ig.orderresto.exceptions.ProductPersistenceException;
+import ch.hearc.ig.orderresto.exceptions.RestaurantPersistenceException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -58,6 +61,10 @@ public class OrderMapper {
             if (rs.next()) {
                 order = mapRowToOrder(rs);
             }
+        } catch (RestaurantPersistenceException e) {
+            throw new RuntimeException(e);
+        } catch (CustomerPersistenceException e) {
+            throw new RuntimeException(e);
         }
         return order;
     }
@@ -74,30 +81,43 @@ public class OrderMapper {
             while (rs.next()) {
                 orders.add(mapRowToOrder(rs));
             }
+        } catch (RestaurantPersistenceException e) {
+            throw new RuntimeException(e);
+        } catch (CustomerPersistenceException e) {
+            throw new RuntimeException(e);
         }
         return orders;
     }
 
     // Méthode pour insérer une nouvelle commande
     public void insert(Order order) throws SQLException {
-        String sql = "INSERT INTO Commande (fk_client, fk_resto, a_emporter, quand) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO Commande (numero, fk_client, fk_resto, a_emporter, quand) VALUES (SEQ_COMMANDE.NEXTVAL, ?, ?, ?, ?)";
 
         try (Connection connection = getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement statement = connection.prepareStatement(sql, new String[]{"numero"})) { // Spécifie la colonne de l'ID généré
+
+            // Définition des paramètres
             statement.setLong(1, order.getCustomer().getId());
             statement.setLong(2, order.getRestaurant().getId());
-            statement.setString(3, order.getTakeAway() ? "Y" : "N");
+            statement.setString(3, order.getTakeAway() ? "O" : "N");
             statement.setTimestamp(4, Timestamp.valueOf(order.getWhen()));
 
+            // Exécuter l'insertion
             statement.executeUpdate();
-            ResultSet generatedKeys = statement.getGeneratedKeys();
-            if (generatedKeys.next()) {
-                order.setId(generatedKeys.getLong(1));
+
+            // Récupérer l'ID généré
+            try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    order.setId(generatedKeys.getLong(1)); // Assigne l'ID généré à la commande
+                } else {
+                    throw new SQLException("Échec de l'insertion de la commande, aucun ID généré.");
+                }
             }
 
-            insertOrderProducts(order); // Associer les produits à la commande
+            insertOrderProducts(order); // Associer les produits à la commande après l'insertion
         }
     }
+
 
     // Méthode pour supprimer une commande
     public void delete(Long id) throws SQLException {
@@ -112,7 +132,7 @@ public class OrderMapper {
     }
 
     // Mappe une ligne de ResultSet vers un objet Order
-    private Order mapRowToOrder(ResultSet rs) throws SQLException {
+    private Order mapRowToOrder(ResultSet rs) throws SQLException, RestaurantPersistenceException, CustomerPersistenceException {
         Long orderId = rs.getLong("numero");
 
         Long customerId = rs.getLong("fk_client");
@@ -173,6 +193,8 @@ public class OrderMapper {
                 Long productId = rs.getLong("fk_produit");
                 products.add(productMapper.findById(productId));
             }
+        } catch (ProductPersistenceException e) {
+            throw new RuntimeException(e);
         }
         return products;
     }
@@ -187,6 +209,10 @@ public class OrderMapper {
             while (rs.next()) {
                 orders.add(mapRowToOrder(rs));
             }
+        } catch (RestaurantPersistenceException e) {
+            throw new RuntimeException(e);
+        } catch (CustomerPersistenceException e) {
+            throw new RuntimeException(e);
         }
         return orders;
     }

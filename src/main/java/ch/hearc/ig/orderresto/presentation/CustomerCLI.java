@@ -65,17 +65,18 @@ public class CustomerCLI extends AbstractCLI {
         }
     }
 
-    public void addCustomer() {
+    public Customer addCustomer() {
         this.ln("Type de client : 1. Client Privé, 2. Organisation");
         int choice = this.readIntFromUser(1, 2);
         Customer customer = createCustomer(choice == 1);
 
         try {
-            customerMapper.insert(customer);
+            customerMapper.insert(customer) ;
             this.ln("Client ajouté avec succès !");
         } catch (CustomerPersistenceException e) {
             this.ln("Erreur lors de l'insertion du client : " + e.getMessage());
         }
+        return customer ;
     }
 
     public Customer getExistingCustomer() {

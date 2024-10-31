@@ -63,7 +63,7 @@ public abstract class AbstractCLI {
     }
 
     protected String readStringFromUser() {
-        return this.readStringFromUser(1, 255, null);
+        return this.readStringFromUser(0, 255, null);
     }
 
     protected String readStringFromUserAllowEmpty() {

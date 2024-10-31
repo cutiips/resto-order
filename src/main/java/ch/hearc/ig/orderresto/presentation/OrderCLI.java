@@ -4,6 +4,9 @@ import ch.hearc.ig.orderresto.business.Customer;
 import ch.hearc.ig.orderresto.business.Order;
 import ch.hearc.ig.orderresto.business.Product;
 import ch.hearc.ig.orderresto.business.Restaurant;
+import ch.hearc.ig.orderresto.exceptions.CustomerPersistenceException;
+import ch.hearc.ig.orderresto.exceptions.ProductPersistenceException;
+import ch.hearc.ig.orderresto.exceptions.RestaurantPersistenceException;
 import ch.hearc.ig.orderresto.persistence.FakeDb;
 import ch.hearc.ig.orderresto.persistence.OrderMapper;
 
@@ -16,7 +19,7 @@ public class OrderCLI extends AbstractCLI {
 
     private final OrderMapper orderMapper = new OrderMapper();
 
-    public Order createNewOrder() throws SQLException {
+    public Order createNewOrder() throws SQLException, RestaurantPersistenceException, CustomerPersistenceException, ProductPersistenceException {
 
         this.ln("======================================================");
         Restaurant restaurant = (new RestaurantCLI()).displayRestaurantIdsAndNames();
@@ -56,8 +59,7 @@ public class OrderCLI extends AbstractCLI {
         if (userChoice == 1) {
             customer = customerCLI.getExistingCustomer();
         } else {
-            customer = customerCLI.createNewCustomer();
-            FakeDb.addCustomer(customer);
+            customer = customerCLI.addCustomer();
         }
 
         // Possible improvements:
