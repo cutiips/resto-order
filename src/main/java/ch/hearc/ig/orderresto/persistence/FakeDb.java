@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
 
+@Deprecated
 public class FakeDb {
     private static Set<Customer> customers;
     private static Set<Restaurant> restaurants;
