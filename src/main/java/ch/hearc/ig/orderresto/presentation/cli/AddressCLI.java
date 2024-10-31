@@ -2,8 +2,15 @@ package ch.hearc.ig.orderresto.presentation.cli;
 
 import ch.hearc.ig.orderresto.business.Address;
 import ch.hearc.ig.orderresto.presentation.AbstractCLI;
+import ch.hearc.ig.orderresto.service.AddressService;
 
 public class AddressCLI extends AbstractCLI {
+
+    private final AddressService addressService;
+
+    public AddressCLI() {
+        this.addressService = new AddressService();
+    }
 
     public Address getNewAddress() {
         this.ln("Quel est le code de votre pays? [CH]");
@@ -14,15 +21,15 @@ public class AddressCLI extends AbstractCLI {
         String locality = this.readStringFromUser();
         this.ln("Quel est le nom de votre rue?");
         String street = this.readStringFromUser();
-        this.ln("Quel est le numéro de votre rue (optionnel)?");
+        this.ln("Quel est le numéro de votre rue ? (optionnel)");
         String streetNumber = this.readStringFromUserAllowEmpty();
 
-        return new Address(
+        return addressService.createAddress(
                 countryCode,
                 String.valueOf(postalCode),
                 locality,
                 street,
-                streetNumber.isEmpty() ? null : streetNumber
+                streetNumber
         );
     }
 }
