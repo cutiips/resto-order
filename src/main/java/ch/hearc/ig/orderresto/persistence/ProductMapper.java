@@ -3,6 +3,7 @@ package ch.hearc.ig.orderresto.persistence;
 import ch.hearc.ig.orderresto.business.Product;
 import ch.hearc.ig.orderresto.business.Restaurant;
 import ch.hearc.ig.orderresto.exceptions.ProductPersistenceException;
+import ch.hearc.ig.orderresto.exceptions.RestaurantPersistenceException;
 
 import java.math.BigDecimal;
 import java.sql.*;
@@ -10,19 +11,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ProductMapper extends BaseMapper {
-    private Product extractProductFromResultSet(ResultSet rs) throws SQLException, ProductPersistenceException {
-        Long productId = rs.getLong("numero");
-        String name = rs.getString("nom");
-        BigDecimal price = rs.getBigDecimal("prix_unitaire");
-        String description = rs.getString("description");
-        Long restaurantId = rs.getLong("fk_resto");
-        Restaurant restaurant = getRestaurantById(restaurantId);
 
-        return new Product(productId, name, price, description, restaurant);
+    private Product extractProductFromResultSet(ResultSet rs) throws ProductPersistenceException {
+        try {
+            Long productId = rs.getLong("numero");
+            String name = rs.getString("nom");
+            BigDecimal price = rs.getBigDecimal("prix_unitaire");
+            String description = rs.getString("description");
+            Long restaurantId = rs.getLong("fk_resto");
+            Restaurant restaurant = getRestaurantById(restaurantId);
+
+            return new Product(productId, name, price, description, restaurant);
+
+        } catch (SQLException e) {
+            throw new ProductPersistenceException("Erreur lors de l'extraction du produit du ResultSet", e);
+        }
     }
 
     // Méthode pour trouver un produit par ID
-    public Product findById(Long id) {
+    public Product findById(Long id) throws ProductPersistenceException {
         Product product = null;
         String sql = "SELECT numero, nom, prix_unitaire, description, fk_resto FROM Produit WHERE numero = ?";
         try (Connection connection = getConnection();
@@ -33,14 +40,14 @@ public class ProductMapper extends BaseMapper {
             if (rs.next()) {
                 product = extractProductFromResultSet(rs);
             }
-        } catch (SQLException | ProductPersistenceException e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
+            throw new ProductPersistenceException("Erreur lors de la récupération du produit avec ID: " + id, e);
         }
         return product;
     }
 
     // Méthode pour récupérer tous les produits
-    public List<Product> findAll() {
+    public List<Product> findAll() throws ProductPersistenceException {
         List<Product> products = new ArrayList<>();
         String sql = "SELECT numero, nom, prix_unitaire, description, fk_resto FROM Produit";
 
@@ -53,14 +60,14 @@ public class ProductMapper extends BaseMapper {
                 products.add(extractProductFromResultSet(rs));
             }
 
-        } catch (ProductPersistenceException | SQLException e) {
-            throw new RuntimeException(e);
+        } catch (SQLException e) {
+            throw new ProductPersistenceException("Erreur lors de la récupération de tous les produits", e);
         }
         return products;
     }
 
     // Méthode pour insérer un produit
-    public void insert(Product product) {
+    public void insert(Product product) throws ProductPersistenceException {
         String sql = "INSERT INTO Produit (nom, prix_unitaire, description, fk_resto) VALUES (?, ?, ?, ?)";
 
         try (Connection connection = getConnection();
@@ -73,12 +80,12 @@ public class ProductMapper extends BaseMapper {
             statement.executeUpdate();
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ProductPersistenceException("Erreur lors de l'insertion du produit: " + product, e);
         }
     }
 
     // Méthode pour mettre à jour un produit existant
-    public void update(Product product) {
+    public void update(Product product) throws ProductPersistenceException {
         String sql = "UPDATE Produit SET nom = ?, prix_unitaire = ?, description = ?, fk_resto = ? WHERE numero = ?";
 
         try (Connection connection = getConnection();
@@ -92,12 +99,12 @@ public class ProductMapper extends BaseMapper {
             statement.executeUpdate();
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ProductPersistenceException("Erreur lors de la mise à jour du produit: " + product, e);
         }
     }
 
     // Méthode pour supprimer un produit
-    public void delete(Long id) {
+    public void delete(Long id) throws ProductPersistenceException {
         String sql = "DELETE FROM Produit WHERE numero = ?";
 
         try (Connection connection = getConnection();
@@ -106,8 +113,8 @@ public class ProductMapper extends BaseMapper {
             statement.executeUpdate();
 
         } catch (SQLException e) {
-            e.printStackTrace();
-        }
+            throw new ProductPersistenceException("Erreur lors de la suppression du produit avec ID: " + id, e);
+        } ;
     }
 
     /**
@@ -121,7 +128,7 @@ public class ProductMapper extends BaseMapper {
         RestaurantMapper restaurantMapper = new RestaurantMapper();
         try {
             return restaurantMapper.findById(restaurantId);  // Appelle le RestaurantMapper pour récupérer le Restaurant
-        } catch (SQLException e) {
+        } catch (RestaurantPersistenceException e) {
             throw new ProductPersistenceException("Erreur lors de la récupération du restaurant avec ID: " + restaurantId, e);
         }
     }
