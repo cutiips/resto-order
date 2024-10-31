@@ -68,4 +68,10 @@ public class Product {
             restaurant.registerProduct(this);
         }
     }
+
+    public void setId(Long id) {
+        if (this.id == null) {
+            this.id = id;
+        }
+    }
 }
