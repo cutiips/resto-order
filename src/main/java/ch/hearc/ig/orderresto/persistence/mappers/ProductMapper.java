@@ -1,16 +1,17 @@
-package ch.hearc.ig.orderresto.persistence;
+package ch.hearc.ig.orderresto.persistence.mappers;
 
 import ch.hearc.ig.orderresto.business.Product;
 import ch.hearc.ig.orderresto.business.Restaurant;
-import ch.hearc.ig.orderresto.exceptions.ProductPersistenceException;
-import ch.hearc.ig.orderresto.exceptions.RestaurantPersistenceException;
+import ch.hearc.ig.orderresto.persistence.exceptions.ProductPersistenceException;
+import ch.hearc.ig.orderresto.persistence.exceptions.RestaurantPersistenceException;
 
 import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
-public class ProductMapper extends BaseMapper {
+public class ProductMapper extends BaseMapper<Product> {
 
     private Product extractProductFromResultSet(ResultSet rs) throws ProductPersistenceException {
         try {
@@ -28,118 +29,97 @@ public class ProductMapper extends BaseMapper {
         }
     }
 
-    // Méthode pour trouver un produit par ID
+    // Méthode pour trouver un produit par ID avec utilisation de l'IdentityMap
     public Product findById(Long id) throws ProductPersistenceException {
-        Product product = null;
+        // Vérifie si le produit est déjà en cache
+        Optional<Product> cachedProduct = findInCache(id);
+        if (cachedProduct.isPresent()) {
+            return cachedProduct.get();
+        }
+
         String sql = "SELECT numero, nom, prix_unitaire, description, fk_resto FROM Produit WHERE numero = ?";
         try (Connection connection = getConnection();
-                PreparedStatement statement = connection.prepareStatement(sql)) {
+             PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setLong(1, id);
             ResultSet rs = statement.executeQuery();
 
             if (rs.next()) {
-                product = extractProductFromResultSet(rs);
+                Product product = extractProductFromResultSet(rs);
+                addToCache(id, product); // Ajoute le produit au cache
+                return product;
             }
         } catch (SQLException e) {
             throw new ProductPersistenceException("Erreur lors de la récupération du produit avec ID: " + id, e);
         }
-        return product;
+        return null;
     }
 
-    // Méthode pour récupérer tous les produits
-    public List<Product> findAll() throws ProductPersistenceException {
-        List<Product> products = new ArrayList<>();
-        String sql = "SELECT numero, nom, prix_unitaire, description, fk_resto FROM Produit";
-
-        try (
-                Connection connection = getConnection();
-                PreparedStatement statement = connection.prepareStatement(sql);
-             ResultSet rs = statement.executeQuery()) {
-
-            while (rs.next()) {
-                products.add(extractProductFromResultSet(rs));
-            }
-
-        } catch (SQLException e) {
-            throw new ProductPersistenceException("Erreur lors de la récupération de tous les produits", e);
-        }
-        return products;
-    }
-
-    // Méthode pour insérer un produit
+    // Méthode pour insérer un produit et l'ajouter dans le cache
     public void insert(Product product) throws ProductPersistenceException {
         String sql = "INSERT INTO Produit (nom, prix_unitaire, description, fk_resto) VALUES (?, ?, ?, ?)";
 
         try (Connection connection = getConnection();
-                PreparedStatement statement = connection.prepareStatement(sql)) {
+             PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             statement.setString(1, product.getName());
             statement.setBigDecimal(2, product.getUnitPrice());
             statement.setString(3, product.getDescription());
-            statement.setLong(4, product.getRestaurant().getId()); // ID du restaurant
+            statement.setLong(4, product.getRestaurant().getId());
 
             statement.executeUpdate();
-
+            ResultSet generatedKeys = statement.getGeneratedKeys();
+            if (generatedKeys.next()) {
+                product.setId(generatedKeys.getLong(1));
+                addToCache(product.getId(), product); // Ajoute le produit au cache
+            }
         } catch (SQLException e) {
             throw new ProductPersistenceException("Erreur lors de l'insertion du produit: " + product, e);
         }
     }
 
-    // Méthode pour mettre à jour un produit existant
+    // Méthode pour mettre à jour un produit et mettre à jour le cache
     public void update(Product product) throws ProductPersistenceException {
         String sql = "UPDATE Produit SET nom = ?, prix_unitaire = ?, description = ?, fk_resto = ? WHERE numero = ?";
 
         try (Connection connection = getConnection();
-                PreparedStatement statement = connection.prepareStatement(sql)) {
+             PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, product.getName());
             statement.setBigDecimal(2, product.getUnitPrice());
             statement.setString(3, product.getDescription());
-            statement.setLong(4, product.getRestaurant().getId()); // ID du restaurant
+            statement.setLong(4, product.getRestaurant().getId());
             statement.setLong(5, product.getId());
 
             statement.executeUpdate();
-
+            updateInCache(product.getId(), product); // Met à jour le produit dans le cache
         } catch (SQLException e) {
             throw new ProductPersistenceException("Erreur lors de la mise à jour du produit: " + product, e);
         }
     }
 
-    // Méthode pour supprimer un produit
+    // Méthode pour supprimer un produit et le retirer du cache
     public void delete(Long id) throws ProductPersistenceException {
         String sql = "DELETE FROM Produit WHERE numero = ?";
 
         try (Connection connection = getConnection();
-                PreparedStatement statement = connection.prepareStatement(sql)) {
+             PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setLong(1, id);
             statement.executeUpdate();
-
+            removeFromCache(id); // Supprime le produit du cache
         } catch (SQLException e) {
             throw new ProductPersistenceException("Erreur lors de la suppression du produit avec ID: " + id, e);
-        } ;
+        }
     }
 
-    /**
-     * 🍽️ Récupère un restaurant par son identifiant.
-     *
-     * @param restaurantId L'identifiant du restaurant à récupérer
-     * @return Le restaurant correspondant à l'ID fourni
-     * @throws ProductPersistenceException Si une erreur survient lors de la requête SQL
-     */
+    // Méthode pour récupérer un restaurant par ID
     private Restaurant getRestaurantById(Long restaurantId) throws ProductPersistenceException {
         RestaurantMapper restaurantMapper = new RestaurantMapper();
         try {
-            return restaurantMapper.findById(restaurantId);  // Appelle le RestaurantMapper pour récupérer le Restaurant
+            return restaurantMapper.findById(restaurantId);
         } catch (RestaurantPersistenceException e) {
             throw new ProductPersistenceException("Erreur lors de la récupération du restaurant avec ID: " + restaurantId, e);
         }
     }
 
-    /**
-     * 📦 Récupère tous les produits d'un restaurant par son identifiant.
-     *
-     * @param restaurantId L'identifiant du restaurant dont on veut récupérer les produits
-     * @return Une liste de produits associés au restaurant, ou une liste vide si aucun produit n'est trouvé
-     * @throws ProductPersistenceException Si une erreur survient lors de la requête SQL
-     */
+    // Méthode pour récupérer tous les produits d'un restaurant par ID avec ajout au cache
     public List<Product> getProductsByRestaurantId(Long restaurantId) throws ProductPersistenceException {
         List<Product> products = new ArrayList<>();
         String sql = "SELECT numero, nom, prix_unitaire, description, fk_resto FROM Produit WHERE fk_resto = ?";
@@ -150,29 +130,13 @@ public class ProductMapper extends BaseMapper {
             ResultSet rs = statement.executeQuery();
 
             while (rs.next()) {
-                Long productId = rs.getLong("numero");
-                String name = rs.getString("nom");
-                BigDecimal price = rs.getBigDecimal("prix_unitaire");
-                String description = rs.getString("description");
-
-                Restaurant restaurant = getRestaurantById(restaurantId);  // Récupérer le restaurant avec l'ID
-
-                products.add(new Product(productId, name, price, description, restaurant));
+                Product product = extractProductFromResultSet(rs);
+                products.add(product);
+                addToCache(product.getId(), product); // Ajoute chaque produit au cache
             }
         } catch (SQLException e) {
             throw new ProductPersistenceException("Erreur lors de la récupération des produits pour le restaurant avec ID: " + restaurantId, e);
         }
         return products;
-    }
-
-    /**
-     * 🥗 Récupère tous les produits d'un restaurant donné.
-     *
-     * @param restaurant Le restaurant dont on veut récupérer les produits
-     * @return Une liste de produits associés au restaurant, ou une liste vide si aucun produit n'est trouvé
-     * @throws ProductPersistenceException Si une erreur survient lors de la requête SQL
-     */
-    public List<Product> findProductsByRestaurant(Restaurant restaurant) throws ProductPersistenceException {
-        return getProductsByRestaurantId(restaurant.getId());
     }
 }

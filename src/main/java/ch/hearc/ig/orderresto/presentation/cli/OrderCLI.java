@@ -1,14 +1,15 @@
-package ch.hearc.ig.orderresto.presentation;
+package ch.hearc.ig.orderresto.presentation.cli;
 
 import ch.hearc.ig.orderresto.business.Customer;
 import ch.hearc.ig.orderresto.business.Order;
 import ch.hearc.ig.orderresto.business.Product;
 import ch.hearc.ig.orderresto.business.Restaurant;
-import ch.hearc.ig.orderresto.exceptions.CustomerPersistenceException;
-import ch.hearc.ig.orderresto.exceptions.ProductPersistenceException;
-import ch.hearc.ig.orderresto.exceptions.RestaurantPersistenceException;
-import ch.hearc.ig.orderresto.persistence.FakeDb;
-import ch.hearc.ig.orderresto.persistence.OrderMapper;
+import ch.hearc.ig.orderresto.persistence.mappers.OrderMapper;
+import ch.hearc.ig.orderresto.persistence.exceptions.CustomerPersistenceException;
+import ch.hearc.ig.orderresto.persistence.exceptions.ProductPersistenceException;
+import ch.hearc.ig.orderresto.persistence.exceptions.RestaurantPersistenceException;
+import ch.hearc.ig.orderresto.presentation.AbstractCLI;
+import ch.hearc.ig.orderresto.presentation.MainCLI;
 
 import java.sql.SQLException;
 import java.time.LocalDateTime;

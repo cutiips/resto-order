@@ -1,12 +1,13 @@
-package ch.hearc.ig.orderresto.persistence;
+package ch.hearc.ig.orderresto.persistence.mappers;
 
 import ch.hearc.ig.orderresto.business.Customer;
 import ch.hearc.ig.orderresto.business.Order;
 import ch.hearc.ig.orderresto.business.Product;
 import ch.hearc.ig.orderresto.business.Restaurant;
-import ch.hearc.ig.orderresto.exceptions.CustomerPersistenceException;
-import ch.hearc.ig.orderresto.exceptions.ProductPersistenceException;
-import ch.hearc.ig.orderresto.exceptions.RestaurantPersistenceException;
+import ch.hearc.ig.orderresto.persistence.exceptions.CustomerPersistenceException;
+import ch.hearc.ig.orderresto.persistence.exceptions.ProductPersistenceException;
+import ch.hearc.ig.orderresto.persistence.exceptions.RestaurantPersistenceException;
+import ch.hearc.ig.orderresto.persistence.mappers.CustomerMapper;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -23,10 +23,6 @@ public abstract class Customer {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id ;
-    }
-
     public String getPhone() {
         return phone;
     }
@@ -45,5 +41,11 @@ public abstract class Customer {
 
     public void addOrder(Order order) {
         this.orders.add(order);
+    }
+
+    public void setId(Long id) {
+        if (this.id == null) {
+            this.id = id;
+        }
     }
 }

@@ -15,7 +15,7 @@ public abstract class AbstractCLI {
     private static final PrintStream printStream = System.out;
 
     protected void ln(String text) {
-        this.printStream.println(text);
+        printStream.println(text);
     }
 
     protected int readIntFromUser(int maxChoice) {
@@ -26,7 +26,7 @@ public abstract class AbstractCLI {
         int choice = -1;
         while (choice < minChoice || choice > maxChoice) {
             try {
-                choice = this.scanner.nextInt();
+                choice = scanner.nextInt();
                 if (choice < minChoice || choice > maxChoice) {
                     this.ln(String.format("Veuillez choisir un nombre entre %d et %d.", minChoice, maxChoice));
                 }
@@ -43,13 +43,14 @@ public abstract class AbstractCLI {
         String input = null;
         while (input == null) {
             try {
-                input = this.scanner.nextLine();
+                input = scanner.nextLine();
                 if (input.isEmpty() && useDefault != null) {
                     return useDefault;
                 } else if (input.length() < minLength) {
                     this.ln(String.format("La chaîne doit faire au moins %d charactères.", minLength));
                     input = null;
                 }
+                assert input != null;
                 if (input.length() > maxLength) {
                     this.ln(String.format("La chaîne doit faire au plus %d charactères.", maxLength));
                     input = null;

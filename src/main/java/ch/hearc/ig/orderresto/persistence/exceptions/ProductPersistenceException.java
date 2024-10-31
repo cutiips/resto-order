@@ -1,4 +1,4 @@
-package ch.hearc.ig.orderresto.exceptions;
+package ch.hearc.ig.orderresto.persistence.exceptions;
 
 public class ProductPersistenceException extends Exception {
     public ProductPersistenceException(String message, Throwable cause) {
