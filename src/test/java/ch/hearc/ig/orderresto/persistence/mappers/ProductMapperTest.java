@@ -11,10 +11,7 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import java.math.BigDecimal;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.Statement;
+import java.sql.*;
 
 public class ProductMapperTest {
 
@@ -23,22 +20,28 @@ public class ProductMapperTest {
     private PreparedStatement mockStatement;
 
     @BeforeEach
-    public void setUp() throws Exception {
-        MockitoAnnotations.openMocks(this); // Initialize mocks
-        productMapper = new ProductMapper(); // Initialize the mapper
-        // Créer des mocks pour les objets JDBC
+    public void setUp() {
+        // Initialiser les mocks avec les annotations
+        MockitoAnnotations.openMocks(this);
+
+        // Créer les mocks pour les objets JDBC
         mockConnection = Mockito.mock(Connection.class);
         mockStatement = Mockito.mock(PreparedStatement.class);
-        ResultSet mockResultSet = Mockito.mock(ResultSet.class);  // Converti en variable locale
+        ResultSet mockResultSet = Mockito.mock(ResultSet.class);
 
-        // Configurer les mocks pour retourner un PreparedStatement quand on prépare une requête
-        when(mockConnection.prepareStatement(anyString(), eq(Statement.RETURN_GENERATED_KEYS))).thenReturn(mockStatement);
-        when(mockConnection.prepareStatement(anyString())).thenReturn(mockStatement); // Ajoutez cette ligne pour les requêtes sans GENERATED_KEYS
+        try {
+            // Configurer les mocks pour retourner un PreparedStatement quand on prépare une requête
+            when(mockConnection.prepareStatement(Mockito.anyString(), Mockito.eq(Statement.RETURN_GENERATED_KEYS))).thenReturn(mockStatement);
+            when(mockConnection.prepareStatement(Mockito.anyString())).thenReturn(mockStatement);
 
-        when(mockStatement.executeQuery()).thenReturn(mockResultSet);
-        when(mockStatement.getGeneratedKeys()).thenReturn(mockResultSet);
-        when(mockResultSet.next()).thenReturn(true);
-        when(mockResultSet.getLong(1)).thenReturn(1L);
+            // Configurer le comportement du ResultSet
+            when(mockStatement.executeQuery()).thenReturn(mockResultSet);
+            when(mockStatement.getGeneratedKeys()).thenReturn(mockResultSet);
+            when(mockResultSet.next()).thenReturn(true);
+            when(mockResultSet.getLong(1)).thenReturn(1L);
+        } catch (SQLException e) {
+            fail("Exception inattendue lors de la configuration du mock : " + e.getMessage());
+        }
 
         // Créer une instance de ProductMapper utilisant la connexion mockée
         productMapper = new ProductMapper() {
@@ -48,6 +51,9 @@ public class ProductMapperTest {
             }
         };
     }
+
+
+
 
     @Test
     public void testInsertProduct() throws Exception {
