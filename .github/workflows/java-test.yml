@@ -26,9 +26,7 @@ jobs:
           distribution: 'temurin'
 
       - name: Build with Maven
-        run: mvn package
-        working-directory: resto-order
+        run: mvn -f resto-order/pom.xml package
 
       - name: Run tests
-        run: mvn test
-        working-directory: resto-order
+        run: mvn -f resto-order/pom.xml test
