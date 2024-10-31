@@ -8,6 +8,7 @@ import ch.hearc.ig.orderresto.business.Restaurant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -23,6 +24,8 @@ public class ProductMapperTest {
 
     @BeforeEach
     public void setUp() throws Exception {
+        MockitoAnnotations.openMocks(this); // Initialize mocks
+        productMapper = new ProductMapper(); // Initialize the mapper
         // Créer des mocks pour les objets JDBC
         mockConnection = Mockito.mock(Connection.class);
         mockStatement = Mockito.mock(PreparedStatement.class);

@@ -7,7 +7,10 @@ import ch.hearc.ig.orderresto.business.Customer;
 import ch.hearc.ig.orderresto.business.Address;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -16,12 +19,18 @@ import java.sql.Statement;
 
 public class CustomerMapperTest {
 
+    @InjectMocks
     private CustomerMapper customerMapper;
+
+    @Mock
     private Connection mockConnection;
+
+    @Mock
     private PreparedStatement mockStatement;
 
     @BeforeEach
     public void setUp() throws Exception {
+        MockitoAnnotations.openMocks(this); // Initialize mocks
         // Créer des mocks pour les objets JDBC
         mockConnection = Mockito.mock(Connection.class);
         mockStatement = Mockito.mock(PreparedStatement.class);
