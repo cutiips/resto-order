@@ -57,7 +57,7 @@ public class CustomerMapperTest {
         customerMapper.addToCache(mockCustomer.getId(), mockCustomer);
 
         // Attempt to read the customer by ID, expecting it to come from the cache instead of executing a query
-        Customer retrievedCustomer = customerMapper.researchById(1L);
+        Customer retrievedCustomer = customerMapper.findById(1L);
 
         // Verify that the retrieved customer matches the cached one
         assertEquals(mockCustomer, retrievedCustomer, "The retrieved customer should be the same as the cached one.");

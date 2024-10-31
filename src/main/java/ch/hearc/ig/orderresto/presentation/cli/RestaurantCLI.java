@@ -234,7 +234,7 @@ public class RestaurantCLI extends AbstractCLI {
         List<Restaurant> allRestaurants = restaurantMapper.findAll();
         for (int i = 0 ; i < allRestaurants.size() ; i++) {
             Restaurant restaurant = (Restaurant) allRestaurants.get(i);
-            this.ln(String.format("%d. %s.", i, restaurant.getName()));
+            this.ln(String.format("%d. ID: %d - Nom: %s.", i, restaurant.getId(), restaurant.getName()));
         }
         int index = this.readIntFromUser(allRestaurants.size() - 1);
         return (Restaurant) allRestaurants.get(index);

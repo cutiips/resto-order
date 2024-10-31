@@ -1,7 +1,6 @@
 package ch.hearc.ig.orderresto.persistence.mappers;
 
 import ch.hearc.ig.orderresto.business.Customer;
-import ch.hearc.ig.orderresto.persistence.IdentityMap;
 import ch.hearc.ig.orderresto.persistence.exceptions.CustomerPersistenceException;
 import ch.hearc.ig.orderresto.persistence.utils.CustomerUtils;
 
@@ -61,7 +60,7 @@ public class CustomerMapper extends BaseMapper<Customer> {
         return customer;
     }
 
-    public Customer researchById(Long id) throws CustomerPersistenceException {
+    public Customer findById(Long id) throws CustomerPersistenceException {
         Optional<Customer> cachedCustomer = findInCache(id);
         if (cachedCustomer.isPresent()) {
             System.out.println("Customer found in cache: " + id);
