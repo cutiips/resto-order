@@ -1,12 +1,15 @@
 package ch.hearc.ig.orderresto.presentation;
 
 import ch.hearc.ig.orderresto.business.Order;
+import ch.hearc.ig.orderresto.exceptions.CustomerPersistenceException;
+import ch.hearc.ig.orderresto.exceptions.ProductPersistenceException;
+import ch.hearc.ig.orderresto.exceptions.RestaurantPersistenceException;
 import ch.hearc.ig.orderresto.persistence.FakeDb;
 
 import java.sql.SQLException;
 
 public class MainCLI extends AbstractCLI {
-    public void run() throws SQLException {
+    public void run() throws SQLException, ProductPersistenceException, RestaurantPersistenceException, CustomerPersistenceException {
         this.ln("======================================================");
         this.ln("Que voulez-vous faire ?");
         this.ln("0. Quitter l'application");
@@ -17,12 +20,13 @@ public class MainCLI extends AbstractCLI {
         this.handleUserChoice(userChoice);
     }
 
-    private void handleUserChoice(int userChoice) throws SQLException {
+    private void handleUserChoice(int userChoice) throws SQLException, ProductPersistenceException, RestaurantPersistenceException, CustomerPersistenceException {
         if (userChoice == 0) {
             this.ln("Good bye!");
             return;
         }
         OrderCLI orderCLI = new OrderCLI();
+        // TODO : remplacer FakeDb par la base de données
         if (userChoice == 1) {
             Order newOrder = orderCLI.createNewOrder();
         } else if (userChoice == 2) {

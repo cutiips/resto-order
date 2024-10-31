@@ -2,47 +2,34 @@ package ch.hearc.ig.orderresto.persistence;
 
 import ch.hearc.ig.orderresto.business.Product;
 import ch.hearc.ig.orderresto.business.Restaurant;
+import ch.hearc.ig.orderresto.exceptions.ProductPersistenceException;
+import ch.hearc.ig.orderresto.exceptions.RestaurantPersistenceException;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
-public class ProductMapper {
-    private String url;
-    private String username;
-    private String password;
+public class ProductMapper extends BaseMapper {
 
-    public ProductMapper() {
-        loadProperties();
-    }
+    private Product extractProductFromResultSet(ResultSet rs) throws ProductPersistenceException {
+        try {
+            Long productId = rs.getLong("numero");
+            String name = rs.getString("nom");
+            BigDecimal price = rs.getBigDecimal("prix_unitaire");
+            String description = rs.getString("description");
+            Long restaurantId = rs.getLong("fk_resto");
+            Restaurant restaurant = getRestaurantById(restaurantId);
 
-    private void loadProperties() {
-        Properties prop = new Properties();
-        try (InputStream input = getClass().getClassLoader().getResourceAsStream("config.properties")) {
-            if (input == null) {
-                System.out.println("Sorry, unable to find config.properties");
-                return;
-            }
-            prop.load(input);
-            url = prop.getProperty("db.url");
-            username = prop.getProperty("db.username");
-            password = prop.getProperty("db.password");
-        } catch (IOException ex) {
-            System.err.println("Error loading properties: " + ex.getMessage());
-            throw new RuntimeException("Database configuration error", ex);
+            return new Product(productId, name, price, description, restaurant);
+
+        } catch (SQLException e) {
+            throw new ProductPersistenceException("Erreur lors de l'extraction du produit du ResultSet", e);
         }
     }
 
-    private Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(url, username, password);
-    }
-
     // Méthode pour trouver un produit par ID
-    public Product findById(Long id) {
+    public Product findById(Long id) throws ProductPersistenceException {
         Product product = null;
         String sql = "SELECT numero, nom, prix_unitaire, description, fk_resto FROM Produit WHERE numero = ?";
         try (Connection connection = getConnection();
@@ -51,27 +38,16 @@ public class ProductMapper {
             ResultSet rs = statement.executeQuery();
 
             if (rs.next()) {
-                // Récupérer les informations du produit
-                Long productId = rs.getLong("numero");
-                String name = rs.getString("nom");
-                BigDecimal price = rs.getBigDecimal("prix_unitaire");
-                String description = rs.getString("description");
-
-                // Récupérer le restaurant associé au produit (par fk_resto)
-                Long restaurantId = rs.getLong("fk_resto");
-                Restaurant restaurant = findRestaurantById(restaurantId);  // Méthode à implémenter pour récupérer un Restaurant
-
-                // Créer l'objet Product
-                product = new Product(productId, name, price, description, restaurant);
+                product = extractProductFromResultSet(rs);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ProductPersistenceException("Erreur lors de la récupération du produit avec ID: " + id, e);
         }
         return product;
     }
 
     // Méthode pour récupérer tous les produits
-    public List<Product> findAll() {
+    public List<Product> findAll() throws ProductPersistenceException {
         List<Product> products = new ArrayList<>();
         String sql = "SELECT numero, nom, prix_unitaire, description, fk_resto FROM Produit";
 
@@ -81,28 +57,17 @@ public class ProductMapper {
              ResultSet rs = statement.executeQuery()) {
 
             while (rs.next()) {
-                // Récupérer les informations du produit
-                Long productId = rs.getLong("numero");
-                String name = rs.getString("nom");
-                BigDecimal price = rs.getBigDecimal("prix_unitaire");
-                String description = rs.getString("description");
-
-                // Récupérer le restaurant associé
-                Long restaurantId = rs.getLong("fk_resto");
-                Restaurant restaurant = findRestaurantById(restaurantId);  // Méthode à implémenter
-
-                // Créer et ajouter le produit à la liste
-                products.add(new Product(productId, name, price, description, restaurant));
+                products.add(extractProductFromResultSet(rs));
             }
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ProductPersistenceException("Erreur lors de la récupération de tous les produits", e);
         }
         return products;
     }
 
     // Méthode pour insérer un produit
-    public void insert(Product product) {
+    public void insert(Product product) throws ProductPersistenceException {
         String sql = "INSERT INTO Produit (nom, prix_unitaire, description, fk_resto) VALUES (?, ?, ?, ?)";
 
         try (Connection connection = getConnection();
@@ -115,12 +80,12 @@ public class ProductMapper {
             statement.executeUpdate();
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ProductPersistenceException("Erreur lors de l'insertion du produit: " + product, e);
         }
     }
 
     // Méthode pour mettre à jour un produit existant
-    public void update(Product product) {
+    public void update(Product product) throws ProductPersistenceException {
         String sql = "UPDATE Produit SET nom = ?, prix_unitaire = ?, description = ?, fk_resto = ? WHERE numero = ?";
 
         try (Connection connection = getConnection();
@@ -134,12 +99,12 @@ public class ProductMapper {
             statement.executeUpdate();
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ProductPersistenceException("Erreur lors de la mise à jour du produit: " + product, e);
         }
     }
 
     // Méthode pour supprimer un produit
-    public void delete(Long id) {
+    public void delete(Long id) throws ProductPersistenceException {
         String sql = "DELETE FROM Produit WHERE numero = ?";
 
         try (Connection connection = getConnection();
@@ -148,19 +113,41 @@ public class ProductMapper {
             statement.executeUpdate();
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ProductPersistenceException("Erreur lors de la suppression du produit avec ID: " + id, e);
+        } ;
+    }
+
+    /**
+     * 🍽️ Récupère un restaurant par son identifiant.
+     *
+     * @param restaurantId L'identifiant du restaurant à récupérer
+     * @return Le restaurant correspondant à l'ID fourni
+     * @throws ProductPersistenceException Si une erreur survient lors de la requête SQL
+     */
+    private Restaurant getRestaurantById(Long restaurantId) throws ProductPersistenceException {
+        RestaurantMapper restaurantMapper = new RestaurantMapper();
+        try {
+            return restaurantMapper.findById(restaurantId);  // Appelle le RestaurantMapper pour récupérer le Restaurant
+        } catch (RestaurantPersistenceException e) {
+            throw new ProductPersistenceException("Erreur lors de la récupération du restaurant avec ID: " + restaurantId, e);
         }
     }
 
-    public List<Product> findByRestaurant(Restaurant restaurant) throws SQLException {
+    /**
+     * 📦 Récupère tous les produits d'un restaurant par son identifiant.
+     *
+     * @param restaurantId L'identifiant du restaurant dont on veut récupérer les produits
+     * @return Une liste de produits associés au restaurant, ou une liste vide si aucun produit n'est trouvé
+     * @throws ProductPersistenceException Si une erreur survient lors de la requête SQL
+     */
+    public List<Product> getProductsByRestaurantId(Long restaurantId) throws ProductPersistenceException {
         List<Product> products = new ArrayList<>();
-        String sql = "SELECT numero, nom, prix_unitaire, description FROM Produit WHERE fk_resto = ?";
+        String sql = "SELECT numero, nom, prix_unitaire, description, fk_resto FROM Produit WHERE fk_resto = ?";
 
-        try (
-                Connection connection = getConnection();
-                PreparedStatement statement = connection.prepareStatement(sql)) {
-                statement.setLong(1, restaurant.getId());
-                ResultSet rs = statement.executeQuery();
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setLong(1, restaurantId);
+            ResultSet rs = statement.executeQuery();
 
             while (rs.next()) {
                 Long productId = rs.getLong("numero");
@@ -168,20 +155,24 @@ public class ProductMapper {
                 BigDecimal price = rs.getBigDecimal("prix_unitaire");
                 String description = rs.getString("description");
 
-                // Créer un objet Product et l'ajouter à la liste
-                Product product = new Product(productId, name, price, description, restaurant);
-                products.add(product);
+                Restaurant restaurant = getRestaurantById(restaurantId);  // Récupérer le restaurant avec l'ID
+
+                products.add(new Product(productId, name, price, description, restaurant));
             }
         } catch (SQLException e) {
-            throw new SQLException("Erreur lors de la récupération des produits pour le restaurant avec ID " + restaurant.getId(), e);
+            throw new ProductPersistenceException("Erreur lors de la récupération des produits pour le restaurant avec ID: " + restaurantId, e);
         }
-
         return products;
     }
 
-    // Méthode auxiliaire pour récupérer un restaurant par ID
-    private Restaurant findRestaurantById(Long restaurantId) throws SQLException {
-        RestaurantMapper restaurantMapper = new RestaurantMapper();
-        return restaurantMapper.findById(restaurantId);  // Appelle le RestaurantMapper pour récupérer le Restaurant
+    /**
+     * 🥗 Récupère tous les produits d'un restaurant donné.
+     *
+     * @param restaurant Le restaurant dont on veut récupérer les produits
+     * @return Une liste de produits associés au restaurant, ou une liste vide si aucun produit n'est trouvé
+     * @throws ProductPersistenceException Si une erreur survient lors de la requête SQL
+     */
+    public List<Product> findProductsByRestaurant(Restaurant restaurant) throws ProductPersistenceException {
+        return getProductsByRestaurantId(restaurant.getId());
     }
 }

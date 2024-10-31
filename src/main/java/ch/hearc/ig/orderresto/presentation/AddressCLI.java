@@ -1,8 +1,6 @@
 package ch.hearc.ig.orderresto.presentation;
 
 import ch.hearc.ig.orderresto.business.Address;
-import ch.hearc.ig.orderresto.business.Customer;
-import ch.hearc.ig.orderresto.persistence.FakeDb;
 
 public class AddressCLI extends AbstractCLI {
 
@@ -16,7 +14,7 @@ public class AddressCLI extends AbstractCLI {
         this.ln("Quel est le nom de votre rue?");
         String street = this.readStringFromUser();
         this.ln("Quel est le numéro de votre rue (optionnel)?");
-        String streetNumber = this.readStringFromUser(0, 2, "");
+        String streetNumber = this.readStringFromUserAllowEmpty();
 
         return new Address(
                 countryCode,
