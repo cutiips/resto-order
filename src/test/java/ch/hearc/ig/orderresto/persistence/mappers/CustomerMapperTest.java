@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import ch.hearc.ig.orderresto.business.Customer;
 import ch.hearc.ig.orderresto.business.Address;
-import ch.hearc.ig.orderresto.persistence.exceptions.CustomerPersistenceException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
