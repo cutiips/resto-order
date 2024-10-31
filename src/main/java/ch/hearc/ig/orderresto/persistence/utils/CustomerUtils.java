@@ -1,4 +1,4 @@
-package ch.hearc.ig.orderresto.persistence;
+package ch.hearc.ig.orderresto.persistence.utils;
 
 import ch.hearc.ig.orderresto.business.*;
 

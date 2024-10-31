@@ -1,7 +1,8 @@
-package ch.hearc.ig.orderresto.persistence;
+package ch.hearc.ig.orderresto.persistence.mappers;
 
 import ch.hearc.ig.orderresto.business.Customer;
-import ch.hearc.ig.orderresto.exceptions.CustomerPersistenceException;
+import ch.hearc.ig.orderresto.persistence.exceptions.CustomerPersistenceException;
+import ch.hearc.ig.orderresto.persistence.utils.CustomerUtils;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -19,7 +20,7 @@ public class CustomerMapper extends BaseMapper<Customer> {
 
             CustomerUtils.setPreparedStatementForCustomer(stmt, customer);
             stmt.executeUpdate();
-            addToCache(customer.getId(), customer); // Ajoute au cache
+            addToCache(customer.getId(), customer);
         } catch (SQLException e) {
             throw new CustomerPersistenceException("Erreur lors de l'insertion du client", e);
         }
@@ -84,7 +85,7 @@ public class CustomerMapper extends BaseMapper<Customer> {
             CustomerUtils.setPreparedStatementForCustomer(stmt, customer);
             stmt.setString(11, customer.getEmail());
             stmt.executeUpdate();
-            updateInCache(customer.getId(), customer); // Met à jour le cache
+            updateInCache(customer.getId(), customer);
         } catch (SQLException e) {
             throw new CustomerPersistenceException("Erreur lors de la mise à jour du client", e);
         }

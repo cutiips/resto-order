@@ -1,12 +1,12 @@
-package ch.hearc.ig.orderresto.presentation;
+package ch.hearc.ig.orderresto.presentation.cli;
 
 import ch.hearc.ig.orderresto.business.Address;
 import ch.hearc.ig.orderresto.business.Restaurant;
-import ch.hearc.ig.orderresto.exceptions.ProductPersistenceException;
-import ch.hearc.ig.orderresto.exceptions.RestaurantPersistenceException;
+import ch.hearc.ig.orderresto.persistence.exceptions.ProductPersistenceException;
+import ch.hearc.ig.orderresto.persistence.exceptions.RestaurantPersistenceException;
 import ch.hearc.ig.orderresto.persistence.FakeDb;
-import ch.hearc.ig.orderresto.persistence.RestaurantMapper;
-import ch.hearc.ig.orderresto.presentation.ProductCLI;
+import ch.hearc.ig.orderresto.persistence.mappers.RestaurantMapper;
+import ch.hearc.ig.orderresto.presentation.AbstractCLI;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -252,11 +252,7 @@ public class RestaurantCLI extends AbstractCLI {
 //        }
     }
 
-    /**
-     * 👀 Permet à l'utilisateur de sélectionner un restaurant existant.
-     * Affiche une liste des restaurants à partir de la base de données fictive et demande à l'utilisateur de faire un choix.
-     * @return Le restaurant sélectionné par l'utilisateur.
-     */
+    @Deprecated
     public Restaurant getExistingRestaurant() {
         this.ln("Choisissez un restaurant:");
         Object[] allRestaurants = FakeDb.getRestaurants().toArray();

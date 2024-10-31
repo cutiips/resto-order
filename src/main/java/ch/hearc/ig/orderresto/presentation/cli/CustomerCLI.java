@@ -1,11 +1,12 @@
-package ch.hearc.ig.orderresto.presentation;
+package ch.hearc.ig.orderresto.presentation.cli;
 
 import ch.hearc.ig.orderresto.business.Address;
 import ch.hearc.ig.orderresto.business.Customer;
 import ch.hearc.ig.orderresto.business.OrganizationCustomer;
 import ch.hearc.ig.orderresto.business.PrivateCustomer;
-import ch.hearc.ig.orderresto.exceptions.CustomerPersistenceException;
-import ch.hearc.ig.orderresto.persistence.CustomerMapper;
+import ch.hearc.ig.orderresto.persistence.exceptions.CustomerPersistenceException;
+import ch.hearc.ig.orderresto.persistence.mappers.CustomerMapper;
+import ch.hearc.ig.orderresto.presentation.AbstractCLI;
 
 import java.util.Objects;
 

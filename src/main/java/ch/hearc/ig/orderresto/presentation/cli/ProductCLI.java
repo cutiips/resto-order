@@ -1,9 +1,10 @@
-package ch.hearc.ig.orderresto.presentation;
+package ch.hearc.ig.orderresto.presentation.cli;
 
 import ch.hearc.ig.orderresto.business.Product;
 import ch.hearc.ig.orderresto.business.Restaurant;
-import ch.hearc.ig.orderresto.exceptions.ProductPersistenceException;
-import ch.hearc.ig.orderresto.persistence.ProductMapper;
+import ch.hearc.ig.orderresto.persistence.exceptions.ProductPersistenceException;
+import ch.hearc.ig.orderresto.persistence.mappers.ProductMapper;
+import ch.hearc.ig.orderresto.presentation.AbstractCLI;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
@@ -13,6 +14,16 @@ import java.util.List ;
 public class ProductCLI extends AbstractCLI {
 
     private final ProductMapper productMapper = new ProductMapper();
+
+    private Product selectProductFromList(List<Product> products) {
+        for (int i = 0; i < products.size(); i++) {
+            Product product = products.get(i);
+            this.ln(String.format("%d. %s - %.2f CHF (%s)", i, product.getName(), product.getUnitPrice(), product.getDescription()));
+        }
+
+        int index = this.readIntFromUser(products.size() - 1);
+        return products.get(index);
+    }
 
     public void run(Restaurant restaurant) throws SQLException, ProductPersistenceException {
         this.ln("======================================================");
@@ -108,9 +119,10 @@ public class ProductCLI extends AbstractCLI {
 
     /**
      * 🎛️ Affiche tous les produits associés à un restaurant.
+     *
      * @param restaurant Le restaurant pour lequel afficher les produits.
      */
-    public Product displayProductsForRestaurant(Restaurant restaurant) {
+    public void displayProductsForRestaurant(Restaurant restaurant) {
         this.ln("Produits disponibles chez " + restaurant.getName() + ":");
 
         try {
@@ -119,18 +131,10 @@ public class ProductCLI extends AbstractCLI {
 
             if (products.isEmpty()) {
                 this.ln("Aucun produit trouvé pour ce restaurant.");
-                return null;
+                return;
             }
 
-            // Affichage de chaque produit avec un index pour le choix de l'utilisateur
-            for (int i = 0; i < products.size(); i++) {
-                Product product = products.get(i);
-                this.ln(String.format("%d. %s - %.2f CHF (%s)", i, product.getName(), product.getUnitPrice(), product.getDescription()));
-            }
-
-            // Lecture de l'index choisi par l'utilisateur
-            int index = this.readIntFromUser(products.size() - 1);
-            return products.get(index); // Retourne le produit sélectionné
+            selectProductFromList(products);
 
         } catch (ProductPersistenceException e) {
             throw new RuntimeException(e);
@@ -151,19 +155,14 @@ public class ProductCLI extends AbstractCLI {
 
         ProductMapper productMapper = new ProductMapper();
         // récupérer les produits du restaurant
-        List<Product> products = productMapper.findProductsByRestaurant(restaurant);
+        List<Product> products = productMapper.getProductsByRestaurantId(restaurant.getId());
 
         if (products.isEmpty()) {
             this.ln("Aucun produit disponible pour ce restaurant.");
             return null;
         }
 
-        for (int i = 0; i < products.size(); i++) {
-            Product product = products.get(i);
-            this.ln(String.format("%d. %s - %.2f CHF (%s)", i, product.getName(), product.getUnitPrice(), product.getDescription()));
-        }
+        return selectProductFromList(products);
 
-        int index = this.readIntFromUser(products.size() - 1);
-        return products.get(index);
     }
 }

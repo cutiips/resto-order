@@ -1,4 +1,6 @@
-package ch.hearc.ig.orderresto.persistence;
+package ch.hearc.ig.orderresto.persistence.mappers;
+
+import ch.hearc.ig.orderresto.persistence.IdentityMap;
 
 import java.io.IOException;
 import java.io.InputStream;
