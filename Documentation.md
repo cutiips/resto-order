@@ -50,7 +50,11 @@ Les tests de `ProductMapper` sont similaires à ceux de `CustomerMapper` et incl
 
 Les tests de `RestaurantMapper` incluent également des vérifications sur l'`IdentityMap` pour le cache.
 
+- **testInsertRestaurant** : Teste l'insertion d'un restaurant et vérifie que l'ID est défini après l'insertion.
+- **testUpdateRestaurant** : Teste la mise à jour d'un restaurant et vérifie qu'une seule requête est exécutée.
+- **testDeleteRestaurant** : Teste la suppression d'un restaurant.
 - **testIdentityMapPreventsMultipleQueries** : Teste l’utilisation de l’`IdentityMap` en vérifiant qu’une seule requête est émise pour charger un restaurant, même si la méthode `findById` est appelée plusieurs fois. Le test vérifie également que le même objet (référence) est retourné pour le même ID.
+
 
 ## Résumé
 
