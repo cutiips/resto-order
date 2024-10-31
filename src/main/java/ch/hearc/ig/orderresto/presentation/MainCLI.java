@@ -4,7 +4,6 @@ import ch.hearc.ig.orderresto.business.Order;
 import ch.hearc.ig.orderresto.persistence.exceptions.CustomerPersistenceException;
 import ch.hearc.ig.orderresto.persistence.exceptions.ProductPersistenceException;
 import ch.hearc.ig.orderresto.persistence.exceptions.RestaurantPersistenceException;
-import ch.hearc.ig.orderresto.persistence.FakeDb;
 import ch.hearc.ig.orderresto.presentation.cli.OrderCLI;
 import ch.hearc.ig.orderresto.presentation.cli.RestaurantCLI;
 

@@ -4,7 +4,6 @@ import ch.hearc.ig.orderresto.business.Address;
 import ch.hearc.ig.orderresto.business.Restaurant;
 import ch.hearc.ig.orderresto.persistence.exceptions.ProductPersistenceException;
 import ch.hearc.ig.orderresto.persistence.exceptions.RestaurantPersistenceException;
-import ch.hearc.ig.orderresto.persistence.FakeDb;
 import ch.hearc.ig.orderresto.persistence.mappers.RestaurantMapper;
 import ch.hearc.ig.orderresto.presentation.AbstractCLI;
 
@@ -238,35 +237,11 @@ public class RestaurantCLI extends AbstractCLI {
         }
         int index = this.readIntFromUser(allRestaurants.size() - 1);
         return (Restaurant) allRestaurants.get(index);
-//        try {
-//            List<Restaurant> restaurants = restaurantMapper.findAll();
-//            if (restaurants.isEmpty()) {
-//                this.ln("Aucun restaurant trouvé.");
-//            } else {
-//                for (Restaurant restaurant : restaurants) {
-//                    this.ln(String.format("ID: %d, Nom: %s", restaurant.getId(), restaurant.getName()));
-//                }
-//            }
-//        } catch (SQLException e) {
-//            this.ln("Erreur lors de la récupération des restaurants : " + e.getMessage());
-//        }
-    }
-
-    @Deprecated
-    public Restaurant getExistingRestaurant() {
-        this.ln("Choisissez un restaurant:");
-        Object[] allRestaurants = FakeDb.getRestaurants().toArray();
-        for (int i = 0 ; i < allRestaurants.length ; i++) {
-            Restaurant restaurant = (Restaurant) allRestaurants[i];
-            this.ln(String.format("%d. %s.", i, restaurant.getName()));
-        }
-        int index = this.readIntFromUser(allRestaurants.length - 1);
-        return (Restaurant) allRestaurants[index];
     }
 
     /**
      * 📝 Affiche les détails complets d'un restaurant.
-     * @param restaurant Le restaurant à afficher.
+     * @param restaurant Le restaurant a affiché.
      */
     private void displayRestaurant(Restaurant restaurant) {
         this.ln(String.format("Nom: %s, Adresse: %s %s, %s %s",
