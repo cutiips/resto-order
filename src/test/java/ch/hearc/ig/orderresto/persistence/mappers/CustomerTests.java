@@ -74,15 +74,17 @@ public class CustomerTests {
 
     @Test
     public void testInvalidPostalCode() {
-        Address address = new Address("CH", "20000", "Genève", "Rue", "2"); // Invalid postal code length
+        Address address = new Address("CH", "20000", "Genève", "Rue", "2"); // Code postal invalide (5 caractères)
         PrivateCustomer customer = new PrivateCustomer(null, "543216789", "invalid@test.com", address, "N", "Invalid", "Postal");
 
-        Exception exception = assertThrows(SQLException.class, () -> customerMapper.insert(customer, conn));
+        CustomerPersistenceException exception = assertThrows(CustomerPersistenceException.class, () -> customerMapper.insert(customer, conn));
+        assertTrue(exception.getCause() instanceof SQLException, "Expected a SQLException as the cause");
         String expectedMessage = "ORA-12899";
-        String actualMessage = exception.getMessage();
+        String actualMessage = exception.getCause().getMessage();
 
         assertTrue(actualMessage.contains(expectedMessage), "Expected ORA-12899 error due to invalid postal code length");
     }
+
 
     @Test
     public void testReadPrivateCustomer() throws CustomerPersistenceException {
