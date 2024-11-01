@@ -10,6 +10,7 @@ import ch.hearc.ig.orderresto.persistence.exceptions.RestaurantPersistenceExcept
 import ch.hearc.ig.orderresto.persistence.utils.ConnectionManager;
 import ch.hearc.ig.orderresto.service.CustomerService;
 import ch.hearc.ig.orderresto.service.ProductService;
+import ch.hearc.ig.orderresto.service.RestaurantService;
 
 import java.sql.*;
 import java.time.LocalDateTime;
@@ -34,7 +35,7 @@ public class OrderMapper {
             if (rs.next()) {
                 order = mapRowToOrder(rs, conn);
             }
-        } catch (RestaurantPersistenceException | CustomerPersistenceException e) {
+        } catch (RestaurantPersistenceException | CustomerPersistenceException | ProductPersistenceException e) {
             throw new RuntimeException(e);
         }
         return order;
@@ -51,7 +52,7 @@ public class OrderMapper {
             while (rs.next()) {
                 orders.add(mapRowToOrder(rs, conn));
             }
-        } catch (RestaurantPersistenceException | CustomerPersistenceException e) {
+        } catch (RestaurantPersistenceException | CustomerPersistenceException | ProductPersistenceException e) {
             throw new RuntimeException(e);
         }
         return orders;
@@ -98,16 +99,14 @@ public class OrderMapper {
     }
 
     // Mappe une ligne de ResultSet vers un objet Order
-    // TODO : trouver comment remplacer findById pour un appel à la couche de Service
-    private Order mapRowToOrder(ResultSet rs, Connection conn) throws SQLException, RestaurantPersistenceException, CustomerPersistenceException {
+    private Order mapRowToOrder(ResultSet rs, Connection conn) throws SQLException, RestaurantPersistenceException, CustomerPersistenceException, ProductPersistenceException {
         Long orderId = rs.getLong("numero");
 
         Long customerId = rs.getLong("fk_client");
-//        Customer customer = new CustomerMapper().findById(customerId); @old
         Customer customer = customerService.getCustomerById(customerId, conn);
 
         Long restaurantId = rs.getLong("fk_resto");
-        Restaurant restaurant = new RestaurantMapper().findById(restaurantId);
+        Restaurant restaurant = new RestaurantService().getRestaurantById(restaurantId);
 
         Boolean takeAway = "Y".equalsIgnoreCase(rs.getString("a_emporter"));
         LocalDateTime when = rs.getTimestamp("quand").toLocalDateTime();
@@ -172,7 +171,7 @@ public class OrderMapper {
             while (rs.next()) {
                 orders.add(mapRowToOrder(rs, conn));
             }
-        } catch (RestaurantPersistenceException | CustomerPersistenceException e) {
+        } catch (RestaurantPersistenceException | CustomerPersistenceException | ProductPersistenceException e) {
             throw new RuntimeException(e);
         }
         return orders;

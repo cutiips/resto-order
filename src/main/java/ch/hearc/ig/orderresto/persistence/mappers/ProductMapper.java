@@ -4,6 +4,7 @@ import ch.hearc.ig.orderresto.business.Product;
 import ch.hearc.ig.orderresto.business.Restaurant;
 import ch.hearc.ig.orderresto.persistence.exceptions.ProductPersistenceException;
 import ch.hearc.ig.orderresto.persistence.exceptions.RestaurantPersistenceException;
+import ch.hearc.ig.orderresto.service.RestaurantService;
 
 import java.math.BigDecimal;
 import java.sql.*;
@@ -14,6 +15,7 @@ import java.util.Optional;
 //TODO : implémenter ProductPersistenceException
 //TODO : vérifier si IdentityMap est bien implémenté
 public class ProductMapper extends BaseMapper<Product> {
+    private final RestaurantService restaurantService = new RestaurantService();
 
     private Product extractProductFromResultSet(ResultSet rs, Connection conn) throws ProductPersistenceException {
         try {
@@ -59,7 +61,7 @@ public class ProductMapper extends BaseMapper<Product> {
     public void insert(Product product, Connection conn) throws ProductPersistenceException {
         String sql = "INSERT INTO Produit (nom, prix_unitaire, description, fk_resto) VALUES (?, ?, ?, ?)";
 
-        try (PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (PreparedStatement statement = conn.prepareStatement(sql, new String[]{"NUMERO"})) {
             statement.setString(1, product.getName());
             statement.setBigDecimal(2, product.getUnitPrice());
             statement.setString(3, product.getDescription());
@@ -109,12 +111,7 @@ public class ProductMapper extends BaseMapper<Product> {
 
     // Méthode pour récupérer un restaurant par ID
     private Restaurant getRestaurantById(Long restaurantId) throws ProductPersistenceException {
-        RestaurantMapper restaurantMapper = new RestaurantMapper(); //TODO : implémenter la couche de service au lieu du mapper
-        try {
-            return restaurantMapper.findById(restaurantId); // TODO : implémenter la méthode findById de la couche de service
-        } catch (RestaurantPersistenceException e) {
-            throw new ProductPersistenceException("Erreur lors de la récupération du restaurant avec ID: " + restaurantId, e);
-        }
+        return restaurantService.getRestaurantById(restaurantId);
     }
 
     // Méthode pour récupérer tous les produits d'un restaurant par ID avec ajout au cache

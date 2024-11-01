@@ -1,13 +1,18 @@
 package ch.hearc.ig.orderresto.presentation;
 
-import ch.hearc.ig.orderresto.business.Order;
+import ch.hearc.ig.orderresto.business.*;
 import ch.hearc.ig.orderresto.persistence.exceptions.CustomerPersistenceException;
 import ch.hearc.ig.orderresto.persistence.exceptions.ProductPersistenceException;
 import ch.hearc.ig.orderresto.persistence.exceptions.RestaurantPersistenceException;
+import ch.hearc.ig.orderresto.presentation.cli.AddressCLI;
 import ch.hearc.ig.orderresto.presentation.cli.OrderCLI;
 import ch.hearc.ig.orderresto.presentation.cli.RestaurantCLI;
+import ch.hearc.ig.orderresto.service.CustomerService;
+import ch.hearc.ig.orderresto.presentation.cli.CustomerCLI;
+
 
 import java.sql.SQLException;
+import java.util.Objects;
 
 public class MainCLI extends AbstractCLI {
     public void run() throws SQLException, ProductPersistenceException, RestaurantPersistenceException, CustomerPersistenceException {
@@ -39,6 +44,6 @@ public class MainCLI extends AbstractCLI {
             RestaurantCLI restaurantCLI = new RestaurantCLI();
             restaurantCLI.run();
         }
-        this.run();
     }
+
 }

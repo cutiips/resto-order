@@ -14,7 +14,7 @@ public class RestaurantMapper extends BaseMapper<Restaurant> {
     public void insert(Restaurant restaurant, Connection conn) throws RestaurantPersistenceException {
         String query = "INSERT INTO RESTAURANT (nom, code_postal, localite, rue, num_rue, pays) VALUES (?, ?, ?, ?, ?, ?)";
 
-        try (PreparedStatement stmt = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
+        try (PreparedStatement stmt = conn.prepareStatement(query, new String[]{"NUMERO"})) {
 
             stmt.setString(1, restaurant.getName());
             AddressUtils.setPreparedStatementAddress(stmt, restaurant.getAddress(), 2);
