@@ -81,14 +81,21 @@ public class CustomerCLI extends AbstractCLI {
     }
 
     public Customer getExistingCustomer() {
-        this.ln("Quelle est votre addresse email?");
-        String email = this.readEmailFromUser();
+        Customer customer = null;
+        while (customer == null) {
+            this.ln("Quelle est votre adresse email?");
+            String email = this.readEmailFromUser();
 
-        try {
-            return customerMapper.read(email);
-        } catch (CustomerPersistenceException e) {
-            this.ln("Erreur lors de la lecture du client : " + e.getMessage());
-            return null;
+            try {
+                customer = customerMapper.read(email);
+                if (customer == null) {
+                    this.ln("Aucun client trouvé avec cet email. Veuillez réessayer.");
+                }
+            } catch (CustomerPersistenceException e) {
+                this.ln("Erreur lors de la lecture du client : " + e.getMessage());
+                return null;
+            }
         }
+        return customer;
     }
 }

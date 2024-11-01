@@ -55,12 +55,18 @@ public class OrderCLI extends AbstractCLI {
             (new MainCLI()).run();
             return null;
         }
+
         CustomerCLI customerCLI = new CustomerCLI();
         Customer customer = null;
         if (userChoice == 1) {
             customer = customerCLI.getExistingCustomer();
         } else {
             customer = customerCLI.addCustomer();
+        }
+
+        if (customer == null) {
+            this.ln("Erreur : Impossible de récupérer ou de créer le client. Commande annulée.");
+            return null;
         }
 
         // Possible improvements:
