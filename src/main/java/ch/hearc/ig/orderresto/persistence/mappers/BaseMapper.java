@@ -37,6 +37,7 @@ public abstract class BaseMapper<T> {
         }
     }
 
+    @Deprecated
     protected Connection getConnection() throws SQLException {
         return DriverManager.getConnection(url, username, password);
     }

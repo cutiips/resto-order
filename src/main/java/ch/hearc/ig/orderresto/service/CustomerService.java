@@ -1,4 +1,70 @@
 package ch.hearc.ig.orderresto.service;
 
+import ch.hearc.ig.orderresto.business.Customer;
+import ch.hearc.ig.orderresto.persistence.exceptions.CustomerPersistenceException;
+import ch.hearc.ig.orderresto.persistence.mappers.CustomerMapper;
+import ch.hearc.ig.orderresto.persistence.utils.ConnectionManager;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+
+//TODO : implémenter CustomerServiceException
 public class CustomerService {
+
+    private final CustomerMapper customerMapper = new CustomerMapper();
+
+    public void addCustomer(Customer customer) {
+        Connection conn = null;
+        try {
+            conn = ConnectionManager.getConnection();
+            conn.setAutoCommit(false);
+
+            customerMapper.insert(customer, conn);
+            conn.commit();
+
+            System.out.println("Client added successfully!");
+        } catch (SQLException | CustomerPersistenceException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException rollbackEx) {
+                    System.err.println("Error during transaction rollback: " + rollbackEx.getMessage());
+                }
+            }
+            System.err.println("Error while adding customer: " + e.getMessage());
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException closeEx) {
+                    System.err.println("Error while closing connection: " + closeEx.getMessage());
+                }
+            }
+        }
+    }
+
+    public Customer getExistingCustomer(String email) {
+        Connection conn = null;
+        Customer customer = null;
+        try {
+            conn = ConnectionManager.getConnection();
+            customer = customerMapper.read(email, conn);
+        } catch (SQLException | CustomerPersistenceException e) {
+            System.err.println("Error while reading customer: " + e.getMessage());
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException closeEx) {
+                    System.err.println("Error while closing connection: " + closeEx.getMessage());
+                }
+            }
+        }
+        return customer;
+    }
+
+    public Customer getCustomerById(Long id, Connection conn) throws CustomerPersistenceException {
+        return customerMapper.findById(id, conn);
+    }
 }

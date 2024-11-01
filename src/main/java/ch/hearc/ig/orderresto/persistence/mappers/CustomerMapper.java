@@ -11,11 +11,10 @@ import java.sql.SQLException;
 import java.util.Optional;
 
 public class CustomerMapper extends BaseMapper<Customer> {
-    public void insert(Customer customer) throws CustomerPersistenceException {
+    public void insert(Customer customer, Connection conn) throws CustomerPersistenceException {
         String query = "INSERT INTO CLIENT (telephone, email, nom, code_postal, localite, rue, num_rue, pays, est_une_femme, prenom, forme_sociale, type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS)) {
+        try (PreparedStatement stmt = conn.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS)) {
 
             CustomerUtils.setPreparedStatementForCustomer(stmt, customer);
             stmt.executeUpdate();
@@ -38,12 +37,11 @@ public class CustomerMapper extends BaseMapper<Customer> {
     }
 
 
-    public Customer read(String email) throws CustomerPersistenceException {
+    public Customer read(String email, Connection conn) throws CustomerPersistenceException {
         String query = "SELECT * FROM CLIENT WHERE email = ?";
         Customer customer = null;
 
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
 
             stmt.setString(1, email);
             ResultSet rs = stmt.executeQuery();
@@ -60,7 +58,7 @@ public class CustomerMapper extends BaseMapper<Customer> {
         return customer;
     }
 
-    public Customer findById(Long id) throws CustomerPersistenceException {
+    public Customer findById(Long id, Connection conn) throws CustomerPersistenceException {
         Optional<Customer> cachedCustomer = findInCache(id);
         if (cachedCustomer.isPresent()) {
             System.out.println("Customer found in cache: " + id);
@@ -70,8 +68,7 @@ public class CustomerMapper extends BaseMapper<Customer> {
         String query = "SELECT * FROM CLIENT WHERE numero = ?";
         Customer customer = null;
 
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
 
             stmt.setLong(1, id);
             ResultSet rs = stmt.executeQuery();
@@ -97,11 +94,10 @@ public class CustomerMapper extends BaseMapper<Customer> {
 
 
 
-    public void update(Customer customer) throws CustomerPersistenceException {
+    public void update(Customer customer, Connection conn) throws CustomerPersistenceException {
         String query = "UPDATE CLIENT SET telephone = ?, nom = ?, code_postal = ?, localite = ?, rue = ?, num_rue = ?, pays = ?, est_une_femme = ?, prenom = ?, forme_sociale = ? WHERE email = ?";
 
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
 
             CustomerUtils.setPreparedStatementForCustomer(stmt, customer);
             stmt.setString(11, customer.getEmail());
@@ -112,11 +108,10 @@ public class CustomerMapper extends BaseMapper<Customer> {
         }
     }
 
-    public void delete(Long id) throws CustomerPersistenceException {
+    public void delete(Long id, Connection conn) throws CustomerPersistenceException {
         String query = "DELETE FROM CLIENT WHERE numero = ?";
 
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
 
             stmt.setLong(1, id);
             stmt.executeUpdate();

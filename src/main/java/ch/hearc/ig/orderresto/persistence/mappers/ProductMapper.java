@@ -11,9 +11,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+//TODO : implémenter ProductPersistenceException
+//TODO : vérifier si IdentityMap est bien implémenté
 public class ProductMapper extends BaseMapper<Product> {
 
-    private Product extractProductFromResultSet(ResultSet rs) throws ProductPersistenceException {
+    private Product extractProductFromResultSet(ResultSet rs, Connection conn) throws ProductPersistenceException {
         try {
             Long productId = rs.getLong("numero");
             String name = rs.getString("nom");
@@ -30,7 +32,7 @@ public class ProductMapper extends BaseMapper<Product> {
     }
 
     // Méthode pour trouver un produit par ID avec utilisation de l'IdentityMap
-    public Product findById(Long id) throws ProductPersistenceException {
+    public Product findById(Long id, Connection conn) throws ProductPersistenceException {
         // Vérifie si le produit est déjà en cache
         Optional<Product> cachedProduct = findInCache(id);
         if (cachedProduct.isPresent()) {
@@ -38,13 +40,12 @@ public class ProductMapper extends BaseMapper<Product> {
         }
 
         String sql = "SELECT numero, nom, prix_unitaire, description, fk_resto FROM Produit WHERE numero = ?";
-        try (Connection connection = getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
             statement.setLong(1, id);
             ResultSet rs = statement.executeQuery();
 
             if (rs.next()) {
-                Product product = extractProductFromResultSet(rs);
+                Product product = extractProductFromResultSet(rs, conn);
                 addToCache(id, product); // Ajoute le produit au cache
                 return product;
             }
@@ -55,11 +56,10 @@ public class ProductMapper extends BaseMapper<Product> {
     }
 
     // Méthode pour insérer un produit et l'ajouter dans le cache
-    public void insert(Product product) throws ProductPersistenceException {
+    public void insert(Product product, Connection conn) throws ProductPersistenceException {
         String sql = "INSERT INTO Produit (nom, prix_unitaire, description, fk_resto) VALUES (?, ?, ?, ?)";
 
-        try (Connection connection = getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             statement.setString(1, product.getName());
             statement.setBigDecimal(2, product.getUnitPrice());
             statement.setString(3, product.getDescription());
@@ -77,11 +77,10 @@ public class ProductMapper extends BaseMapper<Product> {
     }
 
     // Méthode pour mettre à jour un produit et mettre à jour le cache
-    public void update(Product product) throws ProductPersistenceException {
+    public void update(Product product, Connection conn) throws ProductPersistenceException {
         String sql = "UPDATE Produit SET nom = ?, prix_unitaire = ?, description = ?, fk_resto = ? WHERE numero = ?";
 
-        try (Connection connection = getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
             statement.setString(1, product.getName());
             statement.setBigDecimal(2, product.getUnitPrice());
             statement.setString(3, product.getDescription());
@@ -96,11 +95,10 @@ public class ProductMapper extends BaseMapper<Product> {
     }
 
     // Méthode pour supprimer un produit et le retirer du cache
-    public void delete(Long id) throws ProductPersistenceException {
+    public void delete(Long id, Connection conn) throws ProductPersistenceException {
         String sql = "DELETE FROM Produit WHERE numero = ?";
 
-        try (Connection connection = getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
             statement.setLong(1, id);
             statement.executeUpdate();
             removeFromCache(id); // Supprime le produit du cache
@@ -111,26 +109,26 @@ public class ProductMapper extends BaseMapper<Product> {
 
     // Méthode pour récupérer un restaurant par ID
     private Restaurant getRestaurantById(Long restaurantId) throws ProductPersistenceException {
-        RestaurantMapper restaurantMapper = new RestaurantMapper();
+        RestaurantMapper restaurantMapper = new RestaurantMapper(); //TODO : implémenter la couche de service au lieu du mapper
         try {
-            return restaurantMapper.findById(restaurantId);
+            return restaurantMapper.findById(restaurantId); // TODO : implémenter la méthode findById de la couche de service
         } catch (RestaurantPersistenceException e) {
             throw new ProductPersistenceException("Erreur lors de la récupération du restaurant avec ID: " + restaurantId, e);
         }
     }
 
     // Méthode pour récupérer tous les produits d'un restaurant par ID avec ajout au cache
-    public List<Product> getProductsByRestaurantId(Long restaurantId) throws ProductPersistenceException {
+    //TODO : implémenter une verification dans le cache findInCache() pour voir si certains produits sont déjà présents - évite de les ajouter plusieurs fois
+    public List<Product> getProductsByRestaurantId(Long restaurantId, Connection conn) throws ProductPersistenceException {
         List<Product> products = new ArrayList<>();
         String sql = "SELECT numero, nom, prix_unitaire, description, fk_resto FROM Produit WHERE fk_resto = ?";
 
-        try (Connection connection = getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
             statement.setLong(1, restaurantId);
             ResultSet rs = statement.executeQuery();
 
             while (rs.next()) {
-                Product product = extractProductFromResultSet(rs);
+                Product product = extractProductFromResultSet(rs, conn);
                 products.add(product);
                 addToCache(product.getId(), product); // Ajoute chaque produit au cache
             }

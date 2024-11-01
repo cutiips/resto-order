@@ -3,17 +3,16 @@ package ch.hearc.ig.orderresto.presentation.cli;
 import ch.hearc.ig.orderresto.business.Product;
 import ch.hearc.ig.orderresto.business.Restaurant;
 import ch.hearc.ig.orderresto.persistence.exceptions.ProductPersistenceException;
-import ch.hearc.ig.orderresto.persistence.mappers.ProductMapper;
 import ch.hearc.ig.orderresto.presentation.AbstractCLI;
+import ch.hearc.ig.orderresto.service.ProductService;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.List ;
 
-
+//TODO : implémenter ProductPersistenceException
 public class ProductCLI extends AbstractCLI {
-
-    private final ProductMapper productMapper = new ProductMapper();
+    private final ProductService productService = new ProductService();
 
     private Product selectProductFromList(List<Product> products) {
         for (int i = 0; i < products.size(); i++) {
@@ -72,7 +71,7 @@ public class ProductCLI extends AbstractCLI {
 
         Product product = new Product(null, name, unitPrice, description, restaurant);
 
-        productMapper.insert(product);
+        productService.addProduct(product);
         this.ln("Produit ajouté avec succès !");
     }
 
@@ -80,7 +79,7 @@ public class ProductCLI extends AbstractCLI {
         this.ln("Voici la liste des produits (ID et Nom) :");
 
         // Récupérer les produits associés au restaurant
-        List<Product> products = productMapper.getProductsByRestaurantId(restaurant.getId());
+        List<Product> products = productService.getProductsByRestaurantId(restaurant.getId());
 
         if (products.isEmpty()) {
             this.ln("Aucun produit trouvé pour ce restaurant.");
@@ -96,7 +95,7 @@ public class ProductCLI extends AbstractCLI {
         Long id = this.readLongFromUser();
 
         // Vérifier si le produit existe
-        Product existingProduct = productMapper.findById(id);
+        Product existingProduct = productService.getProductById(id);
         if (existingProduct == null || !existingProduct.getRestaurant().getId().equals(restaurant.getId())) {
             this.ln("Produit non trouvé ou n'appartient pas à ce restaurant.");
             return;
@@ -123,7 +122,7 @@ public class ProductCLI extends AbstractCLI {
         Product updatedProduct = new Product(id, newName, newUnitPrice, newDescription, restaurant);
 
         // Mettre à jour le produit dans la base de données
-        productMapper.update(updatedProduct);
+        productService.updateProduct(updatedProduct);
         this.ln("Produit mis à jour avec succès !");
     }
 
@@ -131,7 +130,7 @@ public class ProductCLI extends AbstractCLI {
     public void deleteProduct() throws SQLException, ProductPersistenceException {
         this.ln("Entrez l'ID du produit à supprimer : ");
         Long id = this.readLongFromUser();
-        productMapper.delete(id);
+        productService.deleteProduct(id);
         this.ln("Produit supprimé avec succès !");
     }
 
@@ -147,7 +146,7 @@ public class ProductCLI extends AbstractCLI {
 
         try {
             // Récupération des produits associés au restaurant
-            List<Product> products = productMapper.getProductsByRestaurantId(restaurant.getId());
+            List<Product> products = productService.getProductsByRestaurantId(restaurant.getId());
 
             if (products.isEmpty()) {
                 this.ln("Aucun produit trouvé pour ce restaurant.");
@@ -174,9 +173,9 @@ public class ProductCLI extends AbstractCLI {
     }    public Product getRestaurantProduct(Restaurant restaurant) throws ProductPersistenceException {
         this.ln(String.format("Bienvenue chez %s. Choisissez un de nos produits:", restaurant.getName()));
 
-        ProductMapper productMapper = new ProductMapper();
+        ProductService productService = new ProductService();
         // récupérer les produits du restaurant
-        List<Product> products = productMapper.getProductsByRestaurantId(restaurant.getId());
+        List<Product> products = productService.getProductsByRestaurantId(restaurant.getId());
 
         if (products.isEmpty()) {
             this.ln("Aucun produit disponible pour ce restaurant.");

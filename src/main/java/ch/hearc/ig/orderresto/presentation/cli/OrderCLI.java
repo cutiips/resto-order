@@ -4,12 +4,12 @@ import ch.hearc.ig.orderresto.business.Customer;
 import ch.hearc.ig.orderresto.business.Order;
 import ch.hearc.ig.orderresto.business.Product;
 import ch.hearc.ig.orderresto.business.Restaurant;
-import ch.hearc.ig.orderresto.persistence.mappers.OrderMapper;
 import ch.hearc.ig.orderresto.persistence.exceptions.CustomerPersistenceException;
 import ch.hearc.ig.orderresto.persistence.exceptions.ProductPersistenceException;
 import ch.hearc.ig.orderresto.persistence.exceptions.RestaurantPersistenceException;
 import ch.hearc.ig.orderresto.presentation.AbstractCLI;
 import ch.hearc.ig.orderresto.presentation.MainCLI;
+import ch.hearc.ig.orderresto.service.OrderService;
 
 import java.sql.SQLException;
 import java.time.LocalDateTime;
@@ -17,8 +17,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class OrderCLI extends AbstractCLI {
-
-    private final OrderMapper orderMapper = new OrderMapper();
+    private final OrderService orderService = new OrderService();
 
     public Order createNewOrder() throws SQLException, RestaurantPersistenceException, CustomerPersistenceException, ProductPersistenceException {
 
@@ -74,16 +73,21 @@ public class OrderCLI extends AbstractCLI {
         // - Ask user for multiple products?
         order.setCustomer(customer);
 
-        // Insertion de la commande en base de données
-        orderMapper.insert(order);
-        this.ln("Commande passée avec succès ! Merci pour votre commande.");
+        // Insertion de la commande en base de données via OrderService
+        boolean success = orderService.createOrder(order);
+        if (success) {
+            this.ln("Commande passée avec succès ! Merci pour votre commande.");
+        } else {
+            this.ln("Erreur lors de la création de la commande. Veuillez réessayer.");
+        }
+
 
         return order;
     }
 
     public Order selectOrder() throws SQLException {
         Customer customer = (new CustomerCLI()).getExistingCustomer();
-        List<Order> orders = orderMapper.findOrdersByCustomer(customer);
+        List<Order> orders = orderService.findOrdersByCustomer(customer);
 
         if (orders.isEmpty()) {
             this.ln(String.format("Désolé, il n'y a aucune commande pour %s", customer.getEmail()));
