@@ -1,15 +1,21 @@
 package ch.hearc.ig.orderresto.persistence.mappers;
 
+import ch.hearc.ig.orderresto.business.Address;
+import ch.hearc.ig.orderresto.business.Customer;
+import ch.hearc.ig.orderresto.business.OrganizationCustomer;
+import ch.hearc.ig.orderresto.business.PrivateCustomer;
 import ch.hearc.ig.orderresto.persistence.exceptions.CustomerPersistenceException;
-import org.junit.jupiter.api.*;
-import static org.junit.jupiter.api.Assertions.*;
-
-import ch.hearc.ig.orderresto.business.*;
-import ch.hearc.ig.orderresto.persistence.mappers.CustomerMapper;
 import ch.hearc.ig.orderresto.persistence.utils.ConnectionManager;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class CustomerTests {
 
@@ -27,18 +33,21 @@ public class CustomerTests {
     }
 
     @AfterEach
-    public void tearDown() {
-        try {
-            conn.rollback();
-        } catch (Exception e) {
-            e.printStackTrace();
+    public void tearDown() throws Exception {
+        if (conn != null) {
+            if (conn.getAutoCommit()) {
+                conn.setAutoCommit(false);
+            }
+            conn.rollback(); // Revenir en arrière après chaque test
         }
     }
 
     @AfterAll
     public static void tearDownClass() {
         try {
-            conn.close();
+            if (conn != null && !conn.isClosed()) {
+                conn.close();
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -65,7 +74,7 @@ public class CustomerTests {
 
     @Test
     public void testInvalidPostalCode() {
-        Address address = new Address("CH", "123456", "Genève", "Rue", "2"); // Invalid postal code length
+        Address address = new Address("CH", "20000", "Genève", "Rue", "2"); // Invalid postal code length
         PrivateCustomer customer = new PrivateCustomer(null, "543216789", "invalid@test.com", address, "N", "Invalid", "Postal");
 
         Exception exception = assertThrows(SQLException.class, () -> customerMapper.insert(customer, conn));
