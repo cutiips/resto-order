@@ -7,12 +7,14 @@ import ch.hearc.ig.orderresto.business.PrivateCustomer;
 import ch.hearc.ig.orderresto.persistence.exceptions.CustomerPersistenceException;
 import ch.hearc.ig.orderresto.persistence.mappers.CustomerMapper;
 import ch.hearc.ig.orderresto.presentation.AbstractCLI;
+import ch.hearc.ig.orderresto.service.CustomerService;
 
 import java.util.Objects;
 
+//TODO : implémenter une gestion des exceptions
 public class CustomerCLI extends AbstractCLI {
 
-    private final CustomerMapper customerMapper = new CustomerMapper();
+    private final CustomerService customerService = new CustomerService();
 
     public void run() {
         this.ln("======================================================");
@@ -71,24 +73,23 @@ public class CustomerCLI extends AbstractCLI {
         int choice = this.readIntFromUser(1, 2);
         Customer customer = createCustomer(choice == 1);
 
-        try {
-            customerMapper.insert(customer) ;
-            this.ln("Client ajouté avec succès !");
-        } catch (CustomerPersistenceException e) {
-            this.ln("Erreur lors de l'insertion du client : " + e.getMessage());
-        }
+        customerService.addCustomer(customer);
+
+        this.ln("Client ajouté avec succès !");
         return customer ;
     }
 
     public Customer getExistingCustomer() {
-        this.ln("Quelle est votre addresse email?");
-        String email = this.readEmailFromUser();
+        Customer customer = null;
+        while (customer == null) {
+            this.ln("Quelle est votre adresse email?");
+            String email = this.readEmailFromUser();
 
-        try {
-            return customerMapper.read(email);
-        } catch (CustomerPersistenceException e) {
-            this.ln("Erreur lors de la lecture du client : " + e.getMessage());
-            return null;
+            customer = customerService.getExistingCustomer(email);
+            if (customer == null) {
+                this.ln("Aucun client trouvé avec cet email. Veuillez réessayer.");
+            }
         }
+        return customer;
     }
 }

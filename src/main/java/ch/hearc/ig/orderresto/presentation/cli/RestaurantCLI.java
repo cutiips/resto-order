@@ -6,6 +6,7 @@ import ch.hearc.ig.orderresto.persistence.exceptions.ProductPersistenceException
 import ch.hearc.ig.orderresto.persistence.exceptions.RestaurantPersistenceException;
 import ch.hearc.ig.orderresto.persistence.mappers.RestaurantMapper;
 import ch.hearc.ig.orderresto.presentation.AbstractCLI;
+import ch.hearc.ig.orderresto.service.RestaurantService;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -15,8 +16,7 @@ import java.util.List;
  * Permet d'ajouter, consulter, mettre à jour, supprimer et afficher les restaurants.
  */
 public class RestaurantCLI extends AbstractCLI {
-
-    private final RestaurantMapper restaurantMapper = new RestaurantMapper();
+    private final RestaurantService restaurantService = new RestaurantService();
 
     /**
      * 🎛️ Démarre le menu de gestion des restaurants.
@@ -79,10 +79,10 @@ public class RestaurantCLI extends AbstractCLI {
         Restaurant restaurant = new Restaurant(null, name, address);
 
         try {
-            restaurantMapper.insert(restaurant);
+            restaurantService.addRestaurant(restaurant);
             this.ln("Restaurant ajouté avec succès !");
-        } catch (RestaurantPersistenceException e) {
-            this.ln("Erreur lors de l'insertion du restaurant : " + e.getMessage());
+        } catch (ProductPersistenceException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -98,7 +98,7 @@ public class RestaurantCLI extends AbstractCLI {
         this.ln("Entrez l'ID du restaurant à mettre à jour : ");
         Long id = this.readLongFromUser();
         try {
-            Restaurant existingRestaurant = restaurantMapper.findById(id);
+            Restaurant existingRestaurant = restaurantService.getRestaurantById(id);
             if (existingRestaurant == null) {
                 this.ln("Restaurant non trouvé.");
                 return;
@@ -150,7 +150,7 @@ public class RestaurantCLI extends AbstractCLI {
                     newStreetNumber
             );
             Restaurant updatedRestaurant = new Restaurant(id, newName, updatedAddress);
-            restaurantMapper.update(updatedRestaurant);
+            restaurantService.updateRestaurant(updatedRestaurant);
 
             manageRestaurantProducts(updatedRestaurant);
             this.ln("Restaurant mis à jour avec succès !");
@@ -200,7 +200,7 @@ public class RestaurantCLI extends AbstractCLI {
 
         this.ln("Entrez l'ID du restaurant à supprimer : ");
         Long id = this.readLongFromUser();
-        restaurantMapper.delete(id);
+        restaurantService.deleteRestaurant(id);
         this.ln("Restaurant supprimé avec succès !");
 
     }
@@ -210,17 +210,13 @@ public class RestaurantCLI extends AbstractCLI {
      * Utilise la méthode displayRestaurant pour afficher chaque restaurant.
      */
     private void displayAllRestaurants() {
-        try {
-            List<Restaurant> restaurants = restaurantMapper.findAll();
-            if (restaurants.isEmpty()) {
-                this.ln("Aucun restaurant trouvé.");
-            } else {
-                for (Restaurant restaurant : restaurants) {
-                    displayRestaurant(restaurant);
-                }
+        List<Restaurant> restaurants = restaurantService.getAllRestaurants();
+        if (restaurants.isEmpty()) {
+            this.ln("Aucun restaurant trouvé.");
+        } else {
+            for (Restaurant restaurant : restaurants) {
+                displayRestaurant(restaurant);
             }
-        } catch (RestaurantPersistenceException e) {
-            throw new RuntimeException(e);
         }
     }
 
@@ -230,7 +226,7 @@ public class RestaurantCLI extends AbstractCLI {
      */
     public Restaurant displayRestaurantIdsAndNames() throws RestaurantPersistenceException {
         this.ln("Choisissez un restaurant:");
-        List<Restaurant> allRestaurants = restaurantMapper.findAll();
+        List<Restaurant> allRestaurants = restaurantService.getAllRestaurants();
         for (int i = 0 ; i < allRestaurants.size() ; i++) {
             Restaurant restaurant = (Restaurant) allRestaurants.get(i);
             this.ln(String.format("%d. ID: %d - Nom: %s.", i, restaurant.getId(), restaurant.getName()));

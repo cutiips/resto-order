@@ -11,13 +11,10 @@ import java.util.List;
 
 public class RestaurantMapper extends BaseMapper<Restaurant> {
 
-    private final ProductMapper productMapper = new ProductMapper();
-
-    public void insert(Restaurant restaurant) throws RestaurantPersistenceException {
+    public void insert(Restaurant restaurant, Connection conn) throws RestaurantPersistenceException {
         String query = "INSERT INTO RESTAURANT (nom, code_postal, localite, rue, num_rue, pays) VALUES (?, ?, ?, ?, ?, ?)";
 
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
+        try (PreparedStatement stmt = conn.prepareStatement(query, new String[]{"NUMERO"})) {
 
             stmt.setString(1, restaurant.getName());
             AddressUtils.setPreparedStatementAddress(stmt, restaurant.getAddress(), 2);
@@ -36,12 +33,11 @@ public class RestaurantMapper extends BaseMapper<Restaurant> {
         }
     }
 
-    public Restaurant findById(Long id) throws RestaurantPersistenceException {
+    public Restaurant findById(Long id, Connection conn) throws RestaurantPersistenceException {
         // Vérifie si le restaurant est déjà dans le cache
         return findInCache(id).orElseGet(() -> {
             String query = "SELECT nom, code_postal, localite, rue, num_rue, pays FROM RESTAURANT WHERE numero = ?";
-            try (Connection conn = getConnection();
-                 PreparedStatement stmt = conn.prepareStatement(query)) {
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
 
                 stmt.setLong(1, id);
                 ResultSet rs = stmt.executeQuery();
@@ -59,11 +55,10 @@ public class RestaurantMapper extends BaseMapper<Restaurant> {
         });
     }
 
-    public void update(Restaurant restaurant) throws RestaurantPersistenceException {
+    public void update(Restaurant restaurant, Connection conn) throws RestaurantPersistenceException {
         String query = "UPDATE RESTAURANT SET nom = ?, code_postal = ?, localite = ?, rue = ?, num_rue = ?, pays = ? WHERE numero = ?";
 
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
 
             stmt.setString(1, restaurant.getName());
             AddressUtils.setPreparedStatementAddress(stmt, restaurant.getAddress(), 2);
@@ -77,11 +72,10 @@ public class RestaurantMapper extends BaseMapper<Restaurant> {
         }
     }
 
-    public void delete(Long id) throws RestaurantPersistenceException {
+    public void delete(Long id, Connection conn) throws RestaurantPersistenceException {
         String query = "DELETE FROM RESTAURANT WHERE numero = ?";
 
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
 
             stmt.setLong(1, id);
             stmt.executeUpdate();
@@ -92,12 +86,11 @@ public class RestaurantMapper extends BaseMapper<Restaurant> {
         }
     }
 
-    public List<Restaurant> findAll() throws RestaurantPersistenceException {
+    public List<Restaurant> findAll(Connection conn) throws RestaurantPersistenceException {
         List<Restaurant> restaurants = new ArrayList<>();
         String query = "SELECT numero, nom, code_postal, localite, rue, num_rue, pays FROM RESTAURANT";
 
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query);
+        try (PreparedStatement stmt = conn.prepareStatement(query);
              ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
