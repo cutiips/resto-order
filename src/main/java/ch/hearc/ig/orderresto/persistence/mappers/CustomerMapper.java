@@ -12,7 +12,7 @@ public class CustomerMapper extends BaseMapper<Customer> {
         String query = "INSERT INTO CLIENT (telephone, email, nom, code_postal, localite, rue, num_rue, pays, est_une_femme, prenom, forme_sociale, type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement stmt = conn.prepareStatement(query, new String[]{"NUMERO"})) {
-            CustomerUtils.setPreparedStatementForCustomer(stmt, customer);
+            CustomerUtils.setPreparedStatementForCustomer(stmt, customer, CustomerUtils.QueryType.INSERT);
             stmt.executeUpdate();
 
             // Récupérer l'ID généré par la base de données
@@ -76,19 +76,14 @@ public class CustomerMapper extends BaseMapper<Customer> {
 
             stmt.setLong(1, id);
             ResultSet rs = stmt.executeQuery();
-            System.out.println("1");
 
             if (rs.next()) {
                 customer = CustomerUtils.mapCustomerFromResultSet(rs);
-                System.out.println("2");
                 if (customer != null && customer.getId() != null) {
-                    System.out.println("3");
                     addToCache(customer.getId(), customer);
-                    System.out.println("Customer ajouté au cache avec ID : " + customer.getId());
                 }
 
             }
-            System.out.println("4");
         } catch (SQLException e) {
             throw new CustomerPersistenceException("Erreur lors de la recherche du client par ID", e);
         }
@@ -101,10 +96,10 @@ public class CustomerMapper extends BaseMapper<Customer> {
     public void update(Customer customer, Connection conn) throws CustomerPersistenceException {
         String query = "UPDATE CLIENT SET telephone = ?, nom = ?, code_postal = ?, localite = ?, rue = ?, num_rue = ?, pays = ?, est_une_femme = ?, prenom = ?, forme_sociale = ? WHERE email = ?";
 
-        try (PreparedStatement stmt = conn.prepareStatement(query)) {
 
-            CustomerUtils.setPreparedStatementForCustomer(stmt, customer);
-            stmt.setString(11, customer.getEmail());
+
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            CustomerUtils.setPreparedStatementForCustomer(stmt, customer, CustomerUtils.QueryType.UPDATE);
             stmt.executeUpdate();
             updateInCache(customer.getId(), customer);
         } catch (SQLException e) {

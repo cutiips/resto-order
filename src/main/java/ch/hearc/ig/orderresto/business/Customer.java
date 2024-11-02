@@ -48,4 +48,16 @@ public abstract class Customer {
             this.id = id;
         }
     }
+
+    public void setPhoneNumber(String phone) {
+        this.phone = phone;
+    }
+
+    public String getPhoneNumber() {
+        return phone;
+    }
+
+    public void setAddress(Address address) {
+        this.address = address;
+    }
 }

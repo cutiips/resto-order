@@ -118,4 +118,30 @@ public class CustomerTests {
         Customer deletedCustomer = customerMapper.read("delete@test.com", conn);
         assertNull(deletedCustomer, "Customer should no longer be retrievable after deletion");
     }
+
+    @Test
+    public void testUpdateCustomer() throws CustomerPersistenceException {
+        Address address = new Address("CH", "1000", "Lausanne", "Route", "1");
+        PrivateCustomer customer = new PrivateCustomer(null, "5566778899", "test-update@test.gmail", address, "N", "Update", "Me");
+        customerMapper.insert(customer, conn);
+
+        System.out.println("01 avant le read"+customer.getAddress().getPostalCode());
+
+        Customer updatedCustomer = customerMapper.read("test-update@test.gmail", conn);
+
+
+        System.out.println("02 après le read"+updatedCustomer.getAddress().getPostalCode());
+        updatedCustomer.setPhoneNumber("123456789");
+        updatedCustomer.getAddress().setStreet("Avenue");
+        updatedCustomer.getAddress().setStreetNumber("2");
+
+        System.out.println("03"+updatedCustomer.getAddress().getPostalCode());
+
+        assertDoesNotThrow(() -> customerMapper.update(updatedCustomer, conn));
+        Customer fetchedCustomer = customerMapper.read("test-update@test.gmail", conn);
+        assertEquals("123456789", fetchedCustomer.getPhone(), "Phone number should be updated");
+        assertEquals("Avenue", fetchedCustomer.getAddress().getStreet(), "Street should be updated");
+        assertEquals("2", fetchedCustomer.getAddress().getStreetNumber(), "Street number should be updated");
+
+    }
 }
