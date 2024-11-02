@@ -133,26 +133,20 @@ public class OrderTests {
         Address address = new Address("CH", "1000", "Lausanne", "Rue", "1");
         PrivateCustomer customer = new PrivateCustomer(null, "555555555", "findorders@test.com", address, "N", "Bob", "Builder");
         customerMapper.insert(customer, conn);
-        System.out.println("OKE 1");
 
         Restaurant restaurant = new Restaurant(null, "FindOrders Resto", address);
         restaurantMapper.insert(restaurant, conn);
-        System.out.println("OKE 2");
-        System.out.println(restaurant.getId());
 
-        Product product = new Product(null, "Salad", new BigDecimal("8.00"), "Fresh salad", restaurant);
+        Product product = new Product(null, "Salad", new BigDecimal("10.00"), "Fresh salad", restaurant);
         productMapper.insert(product, conn);
-        System.out.println("OKE 3");
 
         Order order1 = new Order(null, customer, restaurant, false, LocalDateTime.now());
         order1.addProduct(product);
         orderMapper.insert(order1, conn);
-        System.out.println("OKE 4");
 
         Order order2 = new Order(null, customer, restaurant, true, LocalDateTime.now());
         order2.addProduct(product);
         orderMapper.insert(order2, conn);
-        System.out.println("OKE 5");
 
         // Act
         List<Order> orders = orderMapper.findOrdersByCustomer(customer, conn);
