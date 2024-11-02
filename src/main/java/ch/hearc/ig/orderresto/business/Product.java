@@ -20,7 +20,9 @@ public class Product {
         this.description = description;
         this.orders = new HashSet<>();
         this.restaurant = restaurant;
-        restaurant.registerProduct(this); // sert à ajouter le produit au restaurant
+        if (restaurant != null) {
+            restaurant.registerProduct(this); // Sert à ajouter le produit au restaurant
+        }
     }
 
     public Long getId() {
@@ -73,5 +75,13 @@ public class Product {
         if (this.id == null) {
             this.id = id;
         }
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setUnitPrice (BigDecimal unitPrice) {
+        this.unitPrice = unitPrice;
     }
 }

@@ -35,4 +35,12 @@ public class Address {
     public String getStreetNumber() {
         return streetNumber;
     }
+
+    public void setStreet(String street) {
+        this.street = street;
+    }
+
+    public void setStreetNumber(String streetNumber) {
+        this.streetNumber = streetNumber;
+    }
 }

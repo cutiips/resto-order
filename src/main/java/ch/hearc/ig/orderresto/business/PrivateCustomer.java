@@ -24,4 +24,21 @@ public class PrivateCustomer extends Customer {
     public String getLastName() {
         return lastName;
     }
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public void setPhoneNumber(String phone) {
+        super.setPhoneNumber(phone);
+    }
+
+    public String getPhoneNumber() {
+        return super.getPhoneNumber();
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+
 }

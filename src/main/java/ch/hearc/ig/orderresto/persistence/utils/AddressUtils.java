@@ -4,6 +4,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import ch.hearc.ig.orderresto.business.Address;
+import oracle.jdbc.internal.XSCacheOutput;
 
 public class AddressUtils {
 
@@ -23,5 +24,6 @@ public class AddressUtils {
                 rs.getString("rue"),
                 rs.getString("num_rue")
         );
+
     }
 }

@@ -67,4 +67,67 @@ public class CustomerService {
     public Customer getCustomerById(Long id, Connection conn) throws CustomerPersistenceException {
         return customerMapper.findById(id, conn);
     }
+
+    public void updateCustomer(Customer customer) {
+        Connection conn = null;
+        try {
+            conn = ConnectionManager.getConnection();
+            conn.setAutoCommit(false);
+
+            customerMapper.update(customer, conn);
+            conn.commit();
+
+            System.out.println("Client updated successfully!");
+        } catch (SQLException | CustomerPersistenceException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException rollbackEx) {
+                    System.err.println("Error during transaction rollback: " + rollbackEx.getMessage());
+                }
+            }
+            System.err.println("Error while updating customer: " + e.getMessage());
+            throw new RuntimeException("Failed to update customer", e);
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException closeEx) {
+                    System.err.println("Error while closing connection: " + closeEx.getMessage());
+                }
+            }
+        }
+    }
+
+    public void deleteCustomer(Customer customer) {
+        Connection conn = null;
+        try {
+            conn = ConnectionManager.getConnection();
+            conn.setAutoCommit(false);
+
+            customerMapper.delete(customer.getId(), conn);
+            conn.commit();
+
+            System.out.println("Client deleted successfully!");
+        } catch (SQLException | CustomerPersistenceException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException rollbackEx) {
+                    System.err.println("Error during transaction rollback: " + rollbackEx.getMessage());
+                }
+            }
+            System.err.println("Error while deleting customer: " + e.getMessage());
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException closeEx) {
+                    System.err.println("Error while closing connection: " + closeEx.getMessage());
+                }
+            }
+        }
+    }
 }
