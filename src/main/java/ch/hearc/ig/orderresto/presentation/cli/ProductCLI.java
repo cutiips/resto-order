@@ -175,12 +175,11 @@ public class ProductCLI extends AbstractCLI {
                 return null;
             }
 
-            selectProductFromList(products);
+            return selectProductFromList(products);
 
         } catch (ch.hearc.ig.orderresto.service.exceptions.ProductServiceException e) {
             throw new RuntimeException(e);
         }
-        return null;
     }
 
     /**
