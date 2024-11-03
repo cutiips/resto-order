@@ -70,7 +70,7 @@ public class RestaurantTests {
         restaurantMapper.insert(restaurant, conn);
 
         // Act
-        Restaurant readRestaurant = restaurantMapper.findById(restaurant.getId(), conn);
+        Restaurant readRestaurant = restaurantMapper.read(restaurant.getId(), conn);
 
         // Assert
         assertNotNull(readRestaurant, "Restaurant should be retrievable by ID");
@@ -87,7 +87,7 @@ public class RestaurantTests {
 
         // Act & Assert
         assertDoesNotThrow(() -> restaurantMapper.delete(restaurant.getId(), conn));
-        Restaurant deletedRestaurant = restaurantMapper.findById(restaurant.getId(), conn);
+        Restaurant deletedRestaurant = restaurantMapper.read(restaurant.getId(), conn);
         assertNull(deletedRestaurant, "Restaurant should no longer be retrievable after deletion");
     }
 

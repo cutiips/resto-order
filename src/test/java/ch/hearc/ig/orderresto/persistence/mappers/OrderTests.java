@@ -96,7 +96,7 @@ public class OrderTests {
         orderMapper.insert(order, conn);
 
         // Act
-        Order readOrder = orderMapper.findById(order.getId(), conn);
+        Order readOrder = orderMapper.read(order.getId(), conn);
 
         // Assert
         assertNotNull(readOrder, "Order should be retrievable by ID");
@@ -123,7 +123,7 @@ public class OrderTests {
 
         // Act & Assert
         assertDoesNotThrow(() -> orderMapper.delete(order.getId(), conn));
-        Order deletedOrder = orderMapper.findById(order.getId(), conn);
+        Order deletedOrder = orderMapper.read(order.getId(), conn);
         assertNull(deletedOrder, "Order should no longer be retrievable after deletion");
     }
 

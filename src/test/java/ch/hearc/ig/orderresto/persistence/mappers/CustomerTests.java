@@ -92,7 +92,7 @@ public class CustomerTests {
         PrivateCustomer customer = new PrivateCustomer(null, "1122334455", "read@test.com", address, "O", "Read", "Customer");
         customerMapper.insert(customer, conn);
 
-        Customer readCustomer = customerMapper.read("read@test.com", conn);
+        Customer readCustomer = customerMapper.findByEmail("read@test.com", conn);
         assertNotNull(readCustomer, "Customer should be retrievable by email");
         assertEquals(customer.getEmail(), readCustomer.getEmail(), "Email should match");
     }
@@ -103,7 +103,7 @@ public class CustomerTests {
         OrganizationCustomer customer = new OrganizationCustomer(null, "5566778899", "org@gmail.com", address, "Test SA", "SA");
         customerMapper.insert(customer, conn);
 
-        Customer readCustomer = customerMapper.read("org@gmail.com", conn);
+        Customer readCustomer = customerMapper.findByEmail("org@gmail.com", conn);
         assertNotNull(readCustomer, "Customer should be retrievable by email");
         assertEquals(customer.getEmail(), readCustomer.getEmail(), "Email should match");
     }
@@ -115,7 +115,7 @@ public class CustomerTests {
         customerMapper.insert(customer, conn);
 
         assertDoesNotThrow(() -> customerMapper.delete(customer.getId(), conn));
-        Customer deletedCustomer = customerMapper.read("delete@test.com", conn);
+        Customer deletedCustomer = customerMapper.findByEmail("delete@test.com", conn);
         assertNull(deletedCustomer, "Customer should no longer be retrievable after deletion");
     }
 
@@ -127,7 +127,7 @@ public class CustomerTests {
 
         System.out.println("01 avant le read"+customer.getAddress().getPostalCode());
 
-        Customer updatedCustomer = customerMapper.read("test-update@test.gmail", conn);
+        Customer updatedCustomer = customerMapper.findByEmail("test-update@test.gmail", conn);
 
 
         System.out.println("02 après le read"+updatedCustomer.getAddress().getPostalCode());
@@ -138,7 +138,7 @@ public class CustomerTests {
         System.out.println("03"+updatedCustomer.getAddress().getPostalCode());
 
         assertDoesNotThrow(() -> customerMapper.update(updatedCustomer, conn));
-        Customer fetchedCustomer = customerMapper.read("test-update@test.gmail", conn);
+        Customer fetchedCustomer = customerMapper.findByEmail("test-update@test.gmail", conn);
         assertEquals("123456789", fetchedCustomer.getPhone(), "Phone number should be updated");
         assertEquals("Avenue", fetchedCustomer.getAddress().getStreet(), "Street should be updated");
         assertEquals("2", fetchedCustomer.getAddress().getStreetNumber(), "Street number should be updated");

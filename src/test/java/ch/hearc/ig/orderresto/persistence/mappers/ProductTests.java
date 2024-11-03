@@ -73,7 +73,7 @@ public class ProductTests {
         productMapper.insert(product, conn);
 
         // Act
-        Product readProduct = productMapper.findById(product.getId(), conn);
+        Product readProduct = productMapper.read(product.getId(), conn);
 
         // Assert
         assertNotNull(readProduct, "Product should be retrievable by ID");
@@ -96,7 +96,7 @@ public class ProductTests {
         product.setUnitPrice(new BigDecimal("11.00"));
         assertDoesNotThrow(() -> productMapper.update(product, conn));
 
-        Product updatedProduct = productMapper.findById(product.getId(), conn);
+        Product updatedProduct = productMapper.read(product.getId(), conn);
 
         // Assert
         assertNotNull(updatedProduct, "Updated product should be retrievable by ID");
@@ -116,7 +116,7 @@ public class ProductTests {
 
         // Act & Assert
         assertDoesNotThrow(() -> productMapper.delete(product.getId(), conn));
-        Product deletedProduct = productMapper.findById(product.getId(), conn);
+        Product deletedProduct = productMapper.read(product.getId(), conn);
         assertNull(deletedProduct, "Product should no longer be retrievable after deletion");
     }
 }
