@@ -125,17 +125,13 @@ public class CustomerMapperTests {
         PrivateCustomer customer = new PrivateCustomer(null, "5566778899", "test-update@test.gmail", address, "N", "Update", "Me");
         customerMapper.insert(customer, conn);
 
-        System.out.println("01 avant le read"+customer.getAddress().getPostalCode());
-
         Customer updatedCustomer = customerMapper.findByEmail("test-update@test.gmail", conn);
 
 
-        System.out.println("02 après le read"+updatedCustomer.getAddress().getPostalCode());
         updatedCustomer.setPhoneNumber("123456789");
         updatedCustomer.getAddress().setStreet("Avenue");
         updatedCustomer.getAddress().setStreetNumber("2");
 
-        System.out.println("03"+updatedCustomer.getAddress().getPostalCode());
 
         assertDoesNotThrow(() -> customerMapper.update(updatedCustomer, conn));
         Customer fetchedCustomer = customerMapper.findByEmail("test-update@test.gmail", conn);

@@ -10,6 +10,8 @@ import ch.hearc.ig.orderresto.persistence.exceptions.RestaurantPersistenceExcept
 import ch.hearc.ig.orderresto.service.CustomerService;
 import ch.hearc.ig.orderresto.service.ProductService;
 import ch.hearc.ig.orderresto.service.RestaurantService;
+import ch.hearc.ig.orderresto.service.exceptions.CustomerServiceException;
+import ch.hearc.ig.orderresto.service.exceptions.ProductServiceException;
 
 import java.sql.*;
 import java.time.LocalDateTime;
@@ -34,7 +36,8 @@ public class OrderMapper {
             if (rs.next()) {
                 order = mapRowToOrder(rs, conn);
             }
-        } catch (RestaurantPersistenceException | CustomerPersistenceException | ProductPersistenceException e) {
+        } catch (RestaurantPersistenceException | CustomerPersistenceException | ProductPersistenceException |
+                 CustomerServiceException e) {
             throw new RuntimeException(e);
         }
         return order;
@@ -51,7 +54,8 @@ public class OrderMapper {
             while (rs.next()) {
                 orders.add(mapRowToOrder(rs, conn));
             }
-        } catch (RestaurantPersistenceException | CustomerPersistenceException | ProductPersistenceException e) {
+        } catch (RestaurantPersistenceException | CustomerPersistenceException | ProductPersistenceException |
+                 CustomerServiceException e) {
             throw new RuntimeException(e);
         }
         return orders;
@@ -98,11 +102,11 @@ public class OrderMapper {
     }
 
     // Mappe une ligne de ResultSet vers un objet Order
-    private Order mapRowToOrder(ResultSet rs, Connection conn) throws SQLException, RestaurantPersistenceException, CustomerPersistenceException, ProductPersistenceException {
+    private Order mapRowToOrder(ResultSet rs, Connection conn) throws SQLException, RestaurantPersistenceException, CustomerPersistenceException, ProductPersistenceException, CustomerServiceException {
         Long orderId = rs.getLong("numero");
 
         Long customerId = rs.getLong("fk_client");
-        Customer customer = customerService.getCustomerById(customerId, conn);
+        Customer customer = customerService.getCustomerById(customerId);
 
         Long restaurantId = rs.getLong("fk_resto");
         Restaurant restaurant = null;
@@ -158,9 +162,9 @@ public class OrderMapper {
 
             while (rs.next()) {
                 Long productId = rs.getLong("fk_produit");
-                products.add(productService.getProductById(productId, conn));
+                products.add(productService.getProductById(productId));
             }
-        } catch (ProductPersistenceException e) {
+        } catch (ProductServiceException e) {
             throw new RuntimeException(e);
         }
         return products;
@@ -175,7 +179,8 @@ public class OrderMapper {
             while (rs.next()) {
                 orders.add(mapRowToOrder(rs, conn));
             }
-        } catch (RestaurantPersistenceException | CustomerPersistenceException | ProductPersistenceException e) {
+        } catch (RestaurantPersistenceException | CustomerPersistenceException | ProductPersistenceException |
+                 CustomerServiceException e) {
             throw new RuntimeException(e);
         }
         return orders;

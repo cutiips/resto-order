@@ -177,8 +177,6 @@ public class ProductCLI extends AbstractCLI {
 
             selectProductFromList(products);
 
-        } catch (ProductPersistenceException e) {
-            throw new RuntimeException(e);
         } catch (ch.hearc.ig.orderresto.service.exceptions.ProductServiceException e) {
             throw new RuntimeException(e);
         }
