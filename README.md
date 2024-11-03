@@ -44,7 +44,7 @@ Les méthodes à implémenter incluent :
 
 ---
 
-### Questions à résoudre 
+### Questions à résoudre [Issue #4]([https://github.com/votre-utilisateur/votre-repository/issues/X](https://github.com/cutiips/resto-order/issues/4))
 
 À la fin de cet exercice, vous devrez être capables d’apporter des solutions aux questions suivantes :
 
@@ -54,6 +54,10 @@ Les méthodes à implémenter incluent :
 - Que faire dans le Data Mapper lors de la recherche du restaurant (rechercher uniquement le restaurant ? également ses commandes ? où s'arrêter ?) ?
 - Doit-il y avoir des relations entre les différents Data Mappers ?
 - Combien d'interactions (requêtes JDBC) sont effectuées avec la base de données dans votre code ?
+
+
+
+
 
 ---
 
