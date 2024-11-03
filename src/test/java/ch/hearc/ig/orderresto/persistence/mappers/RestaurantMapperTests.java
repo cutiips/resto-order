@@ -125,4 +125,66 @@ public class RestaurantMapperTests {
         // Assert
         assertEquals(2, products.size(), "Restaurant should have 2 products");
     }
+
+    @Test
+    public void testCacheAfterInsert() throws SQLException, RestaurantPersistenceException {
+        // Arrange
+        Address address = new Address("CH", "1000", "Lausanne", "Rue", "1");
+        Restaurant restaurant = new Restaurant(null, "Cache Resto", address);
+
+        // Act
+        restaurantMapper.insert(restaurant, conn);
+        Restaurant cachedRestaurant = restaurantMapper.findInCache(restaurant.getId()).orElse(null);
+
+        // Assert
+        assertNotNull(cachedRestaurant, "Restaurant should be in cache after insert");
+    }
+
+    @Test
+    public void testCacheAfterUpdate() throws SQLException, RestaurantPersistenceException {
+        // Arrange
+        Address address = new Address("CH", "1000", "Lausanne", "Rue", "1");
+        Restaurant restaurant = new Restaurant(null, "Cache Resto", address);
+        restaurantMapper.insert(restaurant, conn);
+
+        // Act
+        restaurant.setName("Updated Cache Resto");
+        restaurantMapper.update(restaurant, conn);
+        Restaurant cachedRestaurant = restaurantMapper.findInCache(restaurant.getId()).orElse(null);
+
+        // Assert
+        assertNotNull(cachedRestaurant, "Restaurant should be in cache after update");
+        assertEquals("Updated Cache Resto", cachedRestaurant.getName(), "Restaurant name should be updated in cache");
+    }
+
+    @Test
+    public void testCacheAfterDelete() throws SQLException, RestaurantPersistenceException {
+        // Arrange
+        Address address = new Address("CH", "1000", "Lausanne", "Rue", "1");
+        Restaurant restaurant = new Restaurant(null, "Cache Resto", address);
+        restaurantMapper.insert(restaurant, conn);
+
+        // Act
+        restaurantMapper.delete(restaurant.getId(), conn);
+        Restaurant cachedRestaurant = restaurantMapper.findInCache(restaurant.getId()).orElse(null);
+
+        // Assert
+        assertNull(cachedRestaurant, "Restaurant should not be in cache after delete");
+    }
+
+    @Test
+    public void testCacheAfterRead() throws SQLException, RestaurantPersistenceException {
+        // Arrange
+        Address address = new Address("CH", "1000", "Lausanne", "Rue", "1");
+        Restaurant restaurant = new Restaurant(null, "Cache Resto", address);
+        restaurantMapper.insert(restaurant, conn);
+
+        // Act
+        Restaurant readRestaurant = restaurantMapper.read(restaurant.getId(), conn);
+        Restaurant cachedRestaurant = restaurantMapper.findInCache(restaurant.getId()).orElse(null);
+
+        // Assert
+        assertNotNull(cachedRestaurant, "Restaurant should be in cache after read");
+        assertEquals(readRestaurant, cachedRestaurant, "Cached restaurant should match read restaurant");
+    }
 }

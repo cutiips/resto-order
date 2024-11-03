@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -88,14 +89,20 @@ public class CustomerMapperTests {
 
     @Test
     public void testReadPrivateCustomer() throws CustomerPersistenceException {
+        // Arrange
         Address address = new Address("CH", "1000", "Lausanne", "Route", "1");
-        PrivateCustomer customer = new PrivateCustomer(null, "1122334455", "read@test.com", address, "O", "Read", "Customer");
+        PrivateCustomer customer = new PrivateCustomer(null, "1122334455", "readprivate@test.com", address, "O", "Read", "Private");
         customerMapper.insert(customer, conn);
 
-        Customer readCustomer = customerMapper.findByEmail("read@test.com", conn);
+        // Act
+        Customer readCustomer = customerMapper.findByEmail("readprivate@test.com", conn);
+
+        // Assert
         assertNotNull(readCustomer, "Customer should be retrievable by email");
+        assertTrue(readCustomer instanceof PrivateCustomer, "Customer should be of type PrivateCustomer");
         assertEquals(customer.getEmail(), readCustomer.getEmail(), "Email should match");
     }
+
 
     @Test
     public void testReadOrganizationCustomer() throws CustomerPersistenceException {
@@ -132,12 +139,135 @@ public class CustomerMapperTests {
         updatedCustomer.getAddress().setStreet("Avenue");
         updatedCustomer.getAddress().setStreetNumber("2");
 
-
         assertDoesNotThrow(() -> customerMapper.update(updatedCustomer, conn));
         Customer fetchedCustomer = customerMapper.findByEmail("test-update@test.gmail", conn);
         assertEquals("123456789", fetchedCustomer.getPhone(), "Phone number should be updated");
         assertEquals("Avenue", fetchedCustomer.getAddress().getStreet(), "Street should be updated");
         assertEquals("2", fetchedCustomer.getAddress().getStreetNumber(), "Street number should be updated");
-
     }
+
+    @Test
+    public void testCacheAfterInsert() throws CustomerPersistenceException {
+        // Arrange
+        Address address = new Address("CH", "4000", "Lausanne", "Route", "5");
+        PrivateCustomer customer = new PrivateCustomer(null, "1122334455", "cache@test.com", address, "O", "Cache", "Customer");
+        customerMapper.insert(customer, conn);
+
+        // Act
+        Customer readCustomer = customerMapper.read(customer.getId(), conn);
+
+        // Assert
+        assertNotNull(readCustomer, "Customer should be retrievable by ID");
+        assertEquals(customer.getId(), readCustomer.getId(), "Customer ID should match");
+        assertSame(customer, readCustomer, "The same instance should be returned from the cache");
+    }
+
+    @Test
+    public void testCacheAfterDelete() throws CustomerPersistenceException {
+        // Arrange
+        Address address = new Address("CH", "4000", "Lausanne", "Route", "5");
+        PrivateCustomer customer = new PrivateCustomer(null, "1122334455", "deletecache@test.com", address, "O", "Delete", "Cache");
+        customerMapper.insert(customer, conn);
+
+        // Act - Supprimer le client
+        customerMapper.delete(customer.getId(), conn);
+
+        // Assert - Le client ne devrait plus être dans le cache
+        Optional<Customer> cachedCustomer = customerMapper.findInCache(customer.getId());
+        assertFalse(cachedCustomer.isPresent(), "Customer should no longer be present in the cache after deletion");
+    }
+
+    @Test
+    public void testUpdatePrivateCustomerInCache() throws CustomerPersistenceException {
+        // Arrange
+        Address address = new Address("CH", "6000", "Zurich", "Rue de la Paix", "15");
+        PrivateCustomer customer = new PrivateCustomer(null, "3344556677", "privatecache@test.com", address, "M", "Mark", "Smith");
+        customerMapper.insert(customer, conn);
+
+        // Modifier des détails du PrivateCustomer
+        customer.setFirstName("UpdatedMark");
+        customer.setLastName("UpdatedSmith");
+        customer.setPhoneNumber("9988776655");
+
+        // Act - Mise à jour
+        customerMapper.update(customer, conn);
+
+        // Assert - Récupérer le client et vérifier les modifications
+        Customer updatedCustomer = customerMapper.read(customer.getId(), conn);
+        assertNotNull(updatedCustomer, "Customer should be retrievable by ID");
+        assertTrue(updatedCustomer instanceof PrivateCustomer, "Customer should be of type PrivateCustomer");
+
+        PrivateCustomer updatedPrivateCustomer = (PrivateCustomer) updatedCustomer;
+        assertEquals("UpdatedMark", updatedPrivateCustomer.getFirstName(), "First name should be updated");
+        assertEquals("UpdatedSmith", updatedPrivateCustomer.getLastName(), "Last name should be updated");
+        assertEquals("9988776655", updatedPrivateCustomer.getPhoneNumber(), "Phone number should be updated");
+        assertSame(customer, updatedPrivateCustomer, "The same instance should be returned from the cache after update");
+    }
+
+    @Test
+    public void testUpdateOrganizationCustomerInCache() throws CustomerPersistenceException {
+        // Arrange
+        Address address = new Address("CH", "8000", "Zurich", "Rue du Commerce", "10");
+        OrganizationCustomer customer = new OrganizationCustomer(null, "4433221100", "orgcache@test.com", address, "Original Corp", "SA");
+        customerMapper.insert(customer, conn);
+
+        // Modifier des détails de l'OrganizationCustomer
+        customer.setName("Updated Corp");
+        customer.setLegalForm("SA");
+        customer.setPhoneNumber("1122334455");
+
+        // Act - Mise à jour
+        customerMapper.update(customer, conn);
+
+        // Assert - Récupérer le client et vérifier les modifications
+        Customer updatedCustomer = customerMapper.read(customer.getId(), conn);
+        assertNotNull(updatedCustomer, "Customer should be retrievable by ID");
+        assertTrue(updatedCustomer instanceof OrganizationCustomer, "Customer should be of type OrganizationCustomer");
+
+        OrganizationCustomer updatedOrgCustomer = (OrganizationCustomer) updatedCustomer;
+        assertEquals("Updated Corp", updatedOrgCustomer.getName(), "Name should be updated");
+        assertEquals("SA", updatedOrgCustomer.getLegalForm(), "Legal form should be updated");
+        assertEquals("1122334455", updatedOrgCustomer.getPhoneNumber(), "Phone number should be updated");
+        assertSame(customer, updatedOrgCustomer, "The same instance should be returned from the cache after update");
+    }
+
+    @Test
+    public void testCacheAfterMultipleReads() throws CustomerPersistenceException {
+        // Arrange
+        Address address = new Address("CH", "7000", "Fribourg", "Boulevard", "20");
+        PrivateCustomer customer = new PrivateCustomer(null, "5566778899", "multiread@test.com", address, "N", "Cache", "Multiple");
+        customerMapper.insert(customer, conn);
+
+        // Act - Première lecture depuis la base de données
+        Customer firstRead = customerMapper.read(customer.getId(), conn);
+        assertNotNull(firstRead, "Customer should be retrievable by ID");
+
+        // Act - Deuxième lecture qui devrait provenir du cache
+        Customer secondRead = customerMapper.read(customer.getId(), conn);
+
+        // Assert - Vérification que l'objet récupéré est identique (même instance)
+        assertSame(firstRead, secondRead, "The second read should return the same instance from the cache");
+    }
+
+    @Test
+    public void testCacheDoesNotMixCustomerTypes() throws CustomerPersistenceException {
+        // Arrange
+        Address address = new Address("CH", "6000", "Zurich", "Rue de la Paix", "15");
+        PrivateCustomer privateCustomer = new PrivateCustomer(null, "3344556677", "privatecustomer@test.com", address, "M", "Mark", "Smith");
+        OrganizationCustomer orgCustomer = new OrganizationCustomer(null, "9988776655", "orgcustomer@test.com", address, "Test Corp", "SA");
+
+        // Insert both customers
+        customerMapper.insert(privateCustomer, conn);
+        customerMapper.insert(orgCustomer, conn);
+
+        // Act - Retrieve each customer from the cache
+        Customer cachedPrivateCustomer = customerMapper.read(privateCustomer.getId(), conn);
+        Customer cachedOrgCustomer = customerMapper.read(orgCustomer.getId(), conn);
+
+        // Assert - Ensure that the types are not mixed
+        assertTrue(cachedPrivateCustomer instanceof PrivateCustomer, "Cached customer should be of type PrivateCustomer");
+        assertTrue(cachedOrgCustomer instanceof OrganizationCustomer, "Cached customer should be of type OrganizationCustomer");
+        assertNotSame(cachedPrivateCustomer, cachedOrgCustomer, "Different customer types should not refer to the same instance");
+    }
+
 }
