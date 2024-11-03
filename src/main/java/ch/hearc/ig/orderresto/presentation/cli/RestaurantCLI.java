@@ -72,14 +72,12 @@ public class RestaurantCLI extends AbstractCLI {
         this.ln("Ajouter un nouveau restaurant - nom du restaurant : ");
         String name = this.readStringFromUser();
 
-        readAddressFromUser();
         Address address = readAddressFromUser();
 
         Restaurant restaurant = new Restaurant(null, name, address);
 
         try {
             restaurantService.addRestaurant(restaurant);
-            this.ln("Restaurant ajouté avec succès !");
         } catch (ch.hearc.ig.orderresto.service.exceptions.RestaurantServiceException e) {
             throw new RuntimeException(e);
         }
@@ -117,10 +115,8 @@ public class RestaurantCLI extends AbstractCLI {
 
             this.ln("Nouveau code pays (actuel : " + existingRestaurant.getAddress().getCountryCode() + ", appuyez sur Entrée pour garder inchangé) : ");
             String newCountryCode = this.readStringFromUserAllowEmpty();
-            this.ln("newCountryCode - update: " + newCountryCode);
             if (newCountryCode.isEmpty()) {
                 newCountryCode = existingRestaurant.getAddress().getCountryCode();
-                this.ln("newCountryCode - default: " + newCountryCode);
             }
 
             this.ln("Nouvelle localité (actuel : " + existingRestaurant.getAddress().getLocality() + ", appuyez sur Entrée pour garder inchangé) : ");
