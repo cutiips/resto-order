@@ -44,7 +44,7 @@ Les méthodes à implémenter incluent :
 
 ---
 
-### Questions à résoudre [Issue #4]([https://github.com/votre-utilisateur/votre-repository/issues/X](https://github.com/cutiips/resto-order/issues/4))
+### Questions à résoudre [Issue #4](https://github.com/cutiips/resto-order/issues/4)
 
 À la fin de cet exercice, vous devrez être capables d’apporter des solutions aux questions suivantes :
 
