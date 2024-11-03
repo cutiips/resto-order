@@ -134,20 +134,25 @@ public class OrderMapperTests {
         Address address = new Address("CH", "1000", "Lausanne", "Rue", "1");
         PrivateCustomer customer = new PrivateCustomer(null, "555555555", "findorders@test.com", address, "N", "Bob", "Builder");
         customerMapper.insert(customer, conn);
+        System.out.println("Customer inserted: " + customer.getId());
 
         Restaurant restaurant = new Restaurant(null, "FindOrders Resto", address);
         restaurantMapper.insert(restaurant, conn);
+        System.out.println("Restaurant inserted: " + restaurant.getId());
 
         Product product = new Product(null, "Salad", new BigDecimal("10.00"), "Fresh salad", restaurant);
         productMapper.insert(product, conn);
+        System.out.println("Product inserted: " + product.getId());
 
         Order order1 = new Order(null, customer, restaurant, false, LocalDateTime.now());
         order1.addProduct(product);
         orderMapper.insert(order1, conn);
+        System.out.println("Order 1 inserted: " + order1.getId());
 
         Order order2 = new Order(null, customer, restaurant, true, LocalDateTime.now());
         order2.addProduct(product);
         orderMapper.insert(order2, conn);
+        System.out.println("Order 2 inserted: " + order2.getId());
 
         // Act
         List<Order> orders = orderMapper.findOrdersByCustomer(customer, conn);
@@ -162,16 +167,12 @@ public class OrderMapperTests {
         Address address = new Address("CH", "1000", "Lausanne", "Rue", "1");
         PrivateCustomer customer = new PrivateCustomer(null, "123456789", "order-cache@test.com", address, "O", "Cache", "Insert");
         customerMapper.insert(customer, conn);
-
         Restaurant restaurant = new Restaurant(null, "Cache Insert Resto", address);
         restaurantMapper.insert(restaurant, conn);
-
         Product product = new Product(null, "Pizza", new BigDecimal("18.00"), "Delicious pizza", restaurant);
         productMapper.insert(product, conn);
-
         Order order = new Order(null, customer, restaurant, false, LocalDateTime.now());
         order.addProduct(product);
-
         // Act
         orderMapper.insert(order, conn);
 

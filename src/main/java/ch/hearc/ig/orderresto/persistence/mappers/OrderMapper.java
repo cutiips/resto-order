@@ -8,11 +8,7 @@ import ch.hearc.ig.orderresto.persistence.exceptions.CustomerPersistenceExceptio
 import ch.hearc.ig.orderresto.persistence.exceptions.OrderPersistenceException;
 import ch.hearc.ig.orderresto.persistence.exceptions.ProductPersistenceException;
 import ch.hearc.ig.orderresto.persistence.exceptions.RestaurantPersistenceException;
-import ch.hearc.ig.orderresto.service.CustomerService;
-import ch.hearc.ig.orderresto.service.ProductService;
-import ch.hearc.ig.orderresto.service.RestaurantService;
 import ch.hearc.ig.orderresto.service.exceptions.CustomerServiceException;
-import ch.hearc.ig.orderresto.service.exceptions.ProductServiceException;
 import ch.hearc.ig.orderresto.service.exceptions.RestaurantServiceException;
 
 import java.sql.*;
@@ -24,14 +20,14 @@ import java.util.Optional;
 import java.util.Set;
 
 public class OrderMapper extends BaseMapper<Order> {
-    private final CustomerService customerService = new CustomerService();
-    private final ProductService productService = new ProductService();
+    private final CustomerMapper customerMapper = new CustomerMapper();
+    private final ProductMapper productMapper = new ProductMapper();
+    private final RestaurantMapper restaurantMapper = new RestaurantMapper();
 
     // Méthode pour trouver une commande par ID
     public Order read(Long id, Connection conn) throws SQLException, OrderPersistenceException {
         Optional<Order> cachedOrder = findInCache(id);
         if (cachedOrder.isPresent()) {
-            System.out.println("Order found in cache: " + id);
             return cachedOrder.get();
         }
 
@@ -111,28 +107,15 @@ public class OrderMapper extends BaseMapper<Order> {
 
     // Méthode pour insérer des produits associés à une commande dans la table Produit_Commande
     private void insertOrderProducts(Order order, Connection conn) throws SQLException {
-        System.out.println("INSERT ORDER PRODUCTS : Inserting order products ...");
         String sql = "INSERT INTO PRODUIT_COMMANDE (fk_produit, fk_commande) VALUES (?, ?)";
 
-        System.out.println("Order ID: " + order.getId());
-        //affiche les produits de la commande
-        for (Product product : order.getProducts()) {
-            System.out.println("Product ID: " + product.getId());
-            System.out.println("Product Name: " + product.getName());
-            System.out.println("Order ID : " + order.getId());
-        }
+
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
             for (Product product : order.getProducts()) {
-                System.out.println("Inserting Product ID: " + product.getId() + ", Order ID: " + order.getId());
                 statement.setLong(1, product.getId());
                 statement.setLong(2, order.getId());
-                int rowsAffected = statement.executeUpdate();
-                System.out.println("Rows affected: " + rowsAffected);
-                //statement.addBatch();
+                statement.executeUpdate();
             }
-            //statement.executeBatch();
-            // Après la boucle où les produits sont ajoutés
-            System.out.println("Nombre total de produits ajoutés à la commande : " + order.getProducts().size());
         }
 
     }
@@ -159,10 +142,10 @@ public class OrderMapper extends BaseMapper<Order> {
         Long orderId = rs.getLong("numero");
 
         Long customerId = rs.getLong("fk_client");
-        Customer customer = customerService.getCustomerById(customerId);
+        Customer customer = customerMapper.read(customerId, conn);
 
         Long restaurantId = rs.getLong("fk_resto");
-        Restaurant restaurant = new RestaurantService().getRestaurantById(restaurantId);
+        Restaurant restaurant = restaurantMapper.read(restaurantId, conn);
 
         Boolean takeAway = "Y".equalsIgnoreCase(rs.getString("a_emporter"));
         LocalDateTime when = rs.getTimestamp("quand").toLocalDateTime();
@@ -190,7 +173,7 @@ public class OrderMapper extends BaseMapper<Order> {
     }
 
     // Récupère les produits associés à une commande
-    private Set<Product> findProductsByOrderId(Long orderId, Connection conn) throws SQLException {
+    private Set<Product> findProductsByOrderId(Long orderId, Connection conn) throws ProductPersistenceException {
         Set<Product> products = new HashSet<>();
         String sql = "SELECT fk_produit FROM Produit_Commande WHERE fk_commande = ?";
 
@@ -200,10 +183,11 @@ public class OrderMapper extends BaseMapper<Order> {
 
             while (rs.next()) {
                 Long productId = rs.getLong("fk_produit");
-                products.add(productService.getProductById(productId));
+                Product product = productMapper.read(productId, conn);
+                products.add(product);
             }
-        } catch (ProductServiceException e) {
-            throw new SQLException("Erreur lors de la récupération des produits par ID de commande", e);
+        } catch (ProductPersistenceException | SQLException e) {
+            throw new ProductPersistenceException("Erreur lors de la récupération des produits par ID de commande", e);
         }
         return products;
     }

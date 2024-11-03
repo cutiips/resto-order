@@ -12,35 +12,9 @@ import ch.hearc.ig.orderresto.service.exceptions.CustomerServiceException;
 
 import java.util.Objects;
 
-//TODO : implémenter une gestion des exceptions
 public class CustomerCLI extends AbstractCLI {
 
     private final CustomerService customerService = new CustomerService();
-
-    public void run() throws CustomerServiceException {
-        this.ln("======================================================");
-        this.ln("0. Retour au menu principal");
-        this.ln("1. Nouveau client");
-        this.ln("2. Client existant");
-        int userChoice = this.readIntFromUser(2);
-        this.handleUserChoice(userChoice);
-    }
-
-    private void handleUserChoice(int userChoice) throws CustomerServiceException {
-        switch (userChoice) {
-            case 0:
-                return;
-            case 1:
-                this.addCustomer();
-                break;
-            case 2:
-                Customer customer = this.getExistingCustomer();
-                if (customer != null) {
-                    this.ln("Client trouvé : ");
-                }
-                break;
-        }
-    }
 
     protected Customer createCustomer(boolean isPrivateCustomer) {
         this.ln("Quelle est votre adresse email?");

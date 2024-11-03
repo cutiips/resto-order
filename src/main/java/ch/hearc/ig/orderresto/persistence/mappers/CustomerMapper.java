@@ -57,7 +57,6 @@ public class CustomerMapper extends BaseMapper<Customer> {
     public Customer read(Long id, Connection conn) throws CustomerPersistenceException {
         Optional<Customer> cachedCustomer = findInCache(id);
         if (cachedCustomer.isPresent()) {
-            System.out.println("Customer found in cache: " + id); // TODO - vérifier la nécessité de cette ligne
             return cachedCustomer.get();
         }
 

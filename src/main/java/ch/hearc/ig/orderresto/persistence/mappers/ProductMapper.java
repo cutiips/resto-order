@@ -3,7 +3,8 @@ package ch.hearc.ig.orderresto.persistence.mappers;
 import ch.hearc.ig.orderresto.business.Product;
 import ch.hearc.ig.orderresto.business.Restaurant;
 import ch.hearc.ig.orderresto.persistence.exceptions.ProductPersistenceException;
-import ch.hearc.ig.orderresto.service.RestaurantService;
+import ch.hearc.ig.orderresto.persistence.exceptions.RestaurantPersistenceException;
+
 
 import java.math.BigDecimal;
 import java.sql.*;
@@ -11,9 +12,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-//TODO : implémenter ProductPersistenceException
 public class ProductMapper extends BaseMapper<Product> {
-    private final RestaurantService restaurantService = new RestaurantService();
+    private final RestaurantMapper restaurantMapper = new RestaurantMapper();
 
     private Product extractProductFromResultSet(ResultSet rs, Connection conn) throws ProductPersistenceException {
         try {
@@ -22,11 +22,11 @@ public class ProductMapper extends BaseMapper<Product> {
             BigDecimal price = rs.getBigDecimal("prix_unitaire");
             String description = rs.getString("description");
             Long restaurantId = rs.getLong("fk_resto");
-            Restaurant restaurant = getRestaurantById(restaurantId);
+            Restaurant restaurant = getRestaurantById(restaurantId, conn);
 
             return new Product(productId, name, price, description, restaurant);
 
-        } catch (SQLException e) {
+        } catch (SQLException | RestaurantPersistenceException e) {
             throw new ProductPersistenceException("Erreur lors de l'extraction du produit du ResultSet", e);
         }
     }
@@ -43,6 +43,8 @@ public class ProductMapper extends BaseMapper<Product> {
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
             statement.setLong(1, id);
             ResultSet rs = statement.executeQuery();
+
+
 
             if (rs.next()) {
                 Product product = extractProductFromResultSet(rs, conn);
@@ -108,12 +110,8 @@ public class ProductMapper extends BaseMapper<Product> {
     }
 
     // Méthode pour récupérer un restaurant par ID
-    private Restaurant getRestaurantById(Long restaurantId) throws ProductPersistenceException {
-        try {
-            return restaurantService.getRestaurantById(restaurantId);
-        } catch (ch.hearc.ig.orderresto.service.exceptions.RestaurantServiceException e) {
-            throw new RuntimeException(e);
-        }
+    private Restaurant getRestaurantById(Long restaurantId, Connection conn) throws RestaurantPersistenceException {
+        return restaurantMapper.read(restaurantId, conn);
     }
 
     // Méthode pour récupérer tous les produits d'un restaurant par ID avec ajout au cache

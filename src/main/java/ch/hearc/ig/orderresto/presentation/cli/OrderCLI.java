@@ -57,7 +57,7 @@ public class OrderCLI extends AbstractCLI {
         }
 
         CustomerCLI customerCLI = new CustomerCLI();
-        Customer customer = null;
+        Customer customer;
         if (userChoice == 1) {
             customer = customerCLI.getExistingCustomer();
         } else {
