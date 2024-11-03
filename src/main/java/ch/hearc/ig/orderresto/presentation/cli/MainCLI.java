@@ -28,7 +28,6 @@ public class MainCLI extends AbstractCLI {
             return;
         }
         OrderCLI orderCLI = new OrderCLI();
-        // TODO : remplacer FakeDb par la base de données
         if (userChoice == 1) {
             Order newOrder = orderCLI.createNewOrder();
         } else if (userChoice == 2) {

@@ -96,13 +96,45 @@ public class OrderMapper extends BaseMapper<Order> {
                 throw new OrderPersistenceException("Échec de l'insertion de la commande, aucun ID généré.", e);
             }
 
-            insertOrderProducts(order, conn); // Associer les produits à la commande après l'insertion
+            try {
+                insertOrderProducts(order, conn); // Associer les produits à la commande après l'insertion
+            } catch (SQLException e) {
+                throw new OrderPersistenceException("Erreur lors de l'insertion des produits de la commande", e);
+            }
 
             // Ajouter au cache si la commande est valide et a un ID
             if (order.getId() != null) {
                 addToCache(order.getId(), order);
             }
         }
+    }
+
+    // Méthode pour insérer des produits associés à une commande dans la table Produit_Commande
+    private void insertOrderProducts(Order order, Connection conn) throws SQLException {
+        System.out.println("INSERT ORDER PRODUCTS : Inserting order products ...");
+        String sql = "INSERT INTO PRODUIT_COMMANDE (fk_produit, fk_commande) VALUES (?, ?)";
+
+        System.out.println("Order ID: " + order.getId());
+        //affiche les produits de la commande
+        for (Product product : order.getProducts()) {
+            System.out.println("Product ID: " + product.getId());
+            System.out.println("Product Name: " + product.getName());
+            System.out.println("Order ID : " + order.getId());
+        }
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            for (Product product : order.getProducts()) {
+                System.out.println("Inserting Product ID: " + product.getId() + ", Order ID: " + order.getId());
+                statement.setLong(1, product.getId());
+                statement.setLong(2, order.getId());
+                int rowsAffected = statement.executeUpdate();
+                System.out.println("Rows affected: " + rowsAffected);
+                //statement.addBatch();
+            }
+            //statement.executeBatch();
+            // Après la boucle où les produits sont ajoutés
+            System.out.println("Nombre total de produits ajoutés à la commande : " + order.getProducts().size());
+        }
+
     }
 
 
@@ -137,25 +169,15 @@ public class OrderMapper extends BaseMapper<Order> {
 
         Order order = new Order(orderId, customer, restaurant, takeAway, when);
 
-        // Charger les produits associés à la commande
-        order.getProducts().addAll(findProductsByOrderId(orderId, conn));
-
+        // Charger les produits associés à la commande en utilisant addProduct
+        Set<Product> products = findProductsByOrderId(orderId, conn);
+        for (Product product : products) {
+            order.addProduct(product);
+        }
         return order;
     }
 
-    // Méthode pour insérer des produits associés à une commande dans la table Produit_Commande
-    private void insertOrderProducts(Order order, Connection conn) throws SQLException {
-        String sql = "INSERT INTO Produit_Commande (fk_produit, fk_commande) VALUES (?, ?)";
 
-        try (PreparedStatement statement = conn.prepareStatement(sql)) {
-            for (Product product : order.getProducts()) {
-                statement.setLong(1, product.getId());
-                statement.setLong(2, order.getId());
-                statement.addBatch();
-            }
-            statement.executeBatch();
-        }
-    }
 
     // Supprime les produits associés à une commande dans la table Produit_Commande
     private void deleteOrderProducts(Long orderId, Connection conn) throws SQLException {
