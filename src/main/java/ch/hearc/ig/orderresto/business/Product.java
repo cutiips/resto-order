@@ -84,4 +84,5 @@ public class Product {
     public void setUnitPrice (BigDecimal unitPrice) {
         this.unitPrice = unitPrice;
     }
+
 }

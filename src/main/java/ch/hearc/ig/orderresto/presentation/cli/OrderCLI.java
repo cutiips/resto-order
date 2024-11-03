@@ -8,8 +8,8 @@ import ch.hearc.ig.orderresto.persistence.exceptions.CustomerPersistenceExceptio
 import ch.hearc.ig.orderresto.persistence.exceptions.ProductPersistenceException;
 import ch.hearc.ig.orderresto.persistence.exceptions.RestaurantPersistenceException;
 import ch.hearc.ig.orderresto.presentation.AbstractCLI;
-import ch.hearc.ig.orderresto.presentation.MainCLI;
 import ch.hearc.ig.orderresto.service.OrderService;
+import ch.hearc.ig.orderresto.service.exceptions.CustomerServiceException;
 
 import java.sql.SQLException;
 import java.time.LocalDateTime;
@@ -19,7 +19,8 @@ import java.util.List;
 public class OrderCLI extends AbstractCLI {
     private final OrderService orderService = new OrderService();
 
-    public Order createNewOrder() throws SQLException, RestaurantPersistenceException, CustomerPersistenceException, ProductPersistenceException {
+
+    public Order createNewOrder() throws SQLException, RestaurantPersistenceException, CustomerPersistenceException, ProductPersistenceException, CustomerServiceException {
 
         this.ln("======================================================");
         Restaurant restaurant = (new RestaurantCLI()).displayRestaurantIdsAndNames();
@@ -74,7 +75,12 @@ public class OrderCLI extends AbstractCLI {
         order.setCustomer(customer);
 
         // Insertion de la commande en base de données via OrderService
-        boolean success = orderService.createOrder(order);
+        boolean success = false;
+        try {
+            success = orderService.createOrder(order);
+        } catch (ch.hearc.ig.orderresto.service.exceptions.OrderServiceException e) {
+            throw new RuntimeException(e);
+        }
         if (success) {
             this.ln("Commande passée avec succès ! Merci pour votre commande.");
         } else {
@@ -85,9 +91,14 @@ public class OrderCLI extends AbstractCLI {
         return order;
     }
 
-    public Order selectOrder() throws SQLException {
+    public Order selectOrder() throws SQLException, CustomerServiceException {
         Customer customer = (new CustomerCLI()).getExistingCustomer();
-        List<Order> orders = orderService.findOrdersByCustomer(customer);
+        List<Order> orders = null;
+        try {
+            orders = orderService.findOrdersByCustomer(customer);
+        } catch (ch.hearc.ig.orderresto.service.exceptions.OrderServiceException e) {
+            throw new RuntimeException(e);
+        }
 
         if (orders.isEmpty()) {
             this.ln(String.format("Désolé, il n'y a aucune commande pour %s", customer.getEmail()));

@@ -1,149 +1,79 @@
 package ch.hearc.ig.orderresto.service;
 
 import ch.hearc.ig.orderresto.business.Restaurant;
-
-import ch.hearc.ig.orderresto.persistence.exceptions.ProductPersistenceException;
-import ch.hearc.ig.orderresto.persistence.exceptions.RestaurantPersistenceException;
 import ch.hearc.ig.orderresto.persistence.mappers.RestaurantMapper;
-import ch.hearc.ig.orderresto.persistence.utils.ConnectionManager;
+import ch.hearc.ig.orderresto.service.exceptions.RestaurantServiceException;
+import ch.hearc.ig.orderresto.service.utils.TransactionHandler;
 
-import java.sql.Connection;
 import java.util.List;
 
 public class RestaurantService {
-    public Restaurant getRestaurantById(Long id) throws ProductPersistenceException {
-        Connection conn = null;
+
+    private final RestaurantMapper restaurantMapper;
+    private final TransactionHandler transactionHandler;
+
+    public RestaurantService() {
+        this.restaurantMapper = new RestaurantMapper();
+        this.transactionHandler = new TransactionHandler();
+    }
+
+    public RestaurantService(RestaurantMapper restaurantMapper, TransactionHandler transactionHandler) {
+        this.restaurantMapper = restaurantMapper;
+        this.transactionHandler = transactionHandler;
+    }
+
+    public Restaurant getRestaurantById(Long id) throws RestaurantServiceException {
         try {
-            conn = ConnectionManager.getConnection();
-            RestaurantMapper restaurantMapper = new RestaurantMapper();
-            return restaurantMapper.findById(id, conn);
+            return transactionHandler.executeInTransaction(conn -> restaurantMapper.read(id, conn));
         } catch (Exception e) {
-            throw new ProductPersistenceException("Erreur lors de la récupération du restaurant avec ID: " + id, e);
-        } finally {
-            if (conn != null) {
-                try {
-                    conn.close();
-                } catch (Exception closeEx) {
-                    System.err.println("Error while closing connection: " + closeEx.getMessage());
-                }
-            }
+            throw new RestaurantServiceException("Error while getting restaurant by id", e);
         }
     }
 
-    public void addRestaurant(Restaurant restaurant) throws ProductPersistenceException {
-        Connection conn = null;
-
+    public boolean addRestaurant(Restaurant restaurant) throws RestaurantServiceException {
         try {
-            conn = ConnectionManager.getConnection();
-            conn.setAutoCommit(false);
-
-            RestaurantMapper restaurantMapper = new RestaurantMapper();
-            restaurantMapper.insert(restaurant, conn);
-            conn.commit();
-
-            System.out.println("Restaurant added successfully!");
+            transactionHandler.executeInTransaction(conn -> {
+                restaurantMapper.insert(restaurant, conn);
+                return null; // Void equivalent
+            });
+            System.out.println("Restaurant ajouté avec succès !");
+            return true;
         } catch (Exception e) {
-            if (conn != null) {
-                try {
-                    conn.rollback();
-                } catch (Exception rollbackEx) {
-                    System.err.println("Error during transaction rollback: " + rollbackEx.getMessage());
-                }
-            }
-            System.err.println("Error while adding restaurant: " + e.getMessage());
-        } finally {
-            if (conn != null) {
-                try {
-                    conn.close();
-                } catch (Exception closeEx) {
-                    System.err.println("Error while closing connection: " + closeEx.getMessage());
-                }
-            }
+            throw new RestaurantServiceException("Failed to add restaurant", e);
         }
     }
 
-    public void updateRestaurant(Restaurant restaurant) throws ProductPersistenceException {
-        Connection conn = null;
-
+    public boolean updateRestaurant(Restaurant restaurant) throws RestaurantServiceException {
         try {
-            conn = ConnectionManager.getConnection();
-            conn.setAutoCommit(false);
-
-            RestaurantMapper restaurantMapper = new RestaurantMapper();
-            restaurantMapper.update(restaurant, conn);
-            conn.commit();
-
+            transactionHandler.executeInTransaction(conn -> {
+                restaurantMapper.update(restaurant, conn);
+                return null; // Void equivalent
+            });
             System.out.println("Restaurant updated successfully!");
+            return true;
         } catch (Exception e) {
-            if (conn != null) {
-                try {
-                    conn.rollback();
-                } catch (Exception rollbackEx) {
-                    System.err.println("Error during transaction rollback: " + rollbackEx.getMessage());
-                }
-            }
-            System.err.println("Error while updating restaurant: " + e.getMessage());
-        } finally {
-            if (conn != null) {
-                try {
-                    conn.close();
-                } catch (Exception closeEx) {
-                    System.err.println("Error while closing connection: " + closeEx.getMessage());
-                }
-            }
+            throw new RestaurantServiceException("Failed to update restaurant", e);
         }
     }
 
-    public void deleteRestaurant(Long id) {
-        Connection conn = null;
-
+    public boolean deleteRestaurant(Long id) throws RestaurantServiceException {
         try {
-            conn = ConnectionManager.getConnection();
-            conn.setAutoCommit(false);
-
-            RestaurantMapper restaurantMapper = new RestaurantMapper();
-            restaurantMapper.delete(id, conn);
-            conn.commit();
-
+            transactionHandler.executeInTransaction(conn -> {
+                restaurantMapper.delete(id, conn);
+                return null; // Void equivalent
+            });
             System.out.println("Restaurant deleted successfully!");
+            return true;
         } catch (Exception e) {
-            if (conn != null) {
-                try {
-                    conn.rollback();
-                } catch (Exception rollbackEx) {
-                    System.err.println("Error during transaction rollback: " + rollbackEx.getMessage());
-                }
-            }
-            System.err.println("Error while deleting restaurant: " + e.getMessage());
-        } finally {
-            if (conn != null) {
-                try {
-                    conn.close();
-                } catch (Exception closeEx) {
-                    System.err.println("Error while closing connection: " + closeEx.getMessage());
-                }
-            }
+            throw new RestaurantServiceException("Failed to delete restaurant", e);
         }
     }
 
-    public List<Restaurant> getAllRestaurants() {
-        Connection conn = null;
-
+    public List<Restaurant> getAllRestaurants() throws RestaurantServiceException {
         try {
-            conn = ConnectionManager.getConnection();
-            RestaurantMapper restaurantMapper = new RestaurantMapper();
-            return restaurantMapper.findAll(conn);
+            return transactionHandler.executeInTransaction(restaurantMapper::findAll);
         } catch (Exception e) {
-            System.err.println("Error while getting all restaurants: " + e.getMessage());
-            return null;
-        } finally {
-            if (conn != null) {
-                try {
-                    conn.close();
-                } catch (Exception closeEx) {
-                    System.err.println("Error while closing connection: " + closeEx.getMessage());
-                }
-            }
+            throw new RestaurantServiceException("Failed to get all restaurants", e);
         }
     }
 }

@@ -15,25 +15,17 @@ public class CustomerMapper extends BaseMapper<Customer> {
             CustomerUtils.setPreparedStatementForCustomer(stmt, customer, CustomerUtils.QueryType.INSERT);
             stmt.executeUpdate();
 
-            // Récupérer l'ID généré par la base de données
             try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
                     Long generatedId = generatedKeys.getLong(1);
-                    if (generatedId == null) {
-                        throw new SQLException("ID généré est nul après l'insertion du client.");
-                    }
                     customer.setId(generatedId);
                 } else {
-                    throw new SQLException("Échec de l'insertion du client, aucun ID généré.");
+                    throw new CustomerPersistenceException("Échec de l'insertion du client, aucun ID généré.");
                 }
             }
 
-
-            // Ajouter au cache avec l'ID mis à jour
-            addToCache(customer.getId(), customer);
+                addToCache(customer.getId(), customer);
         } catch (SQLException e) {
-            System.err.println("Erreur lors de l'insertion du client: " + e.getMessage());
-            e.printStackTrace();
             throw new CustomerPersistenceException("Erreur lors de l'insertion du client", e);
         }
 
@@ -41,7 +33,7 @@ public class CustomerMapper extends BaseMapper<Customer> {
     }
 
 
-    public Customer read(String email, Connection conn) throws CustomerPersistenceException {
+    public Customer findByEmail(String email, Connection conn) throws CustomerPersistenceException {
         String query = "SELECT * FROM CLIENT WHERE email = ?";
         Customer customer = null;
 
@@ -62,10 +54,10 @@ public class CustomerMapper extends BaseMapper<Customer> {
         return customer;
     }
 
-    public Customer findById(Long id, Connection conn) throws CustomerPersistenceException {
+    public Customer read(Long id, Connection conn) throws CustomerPersistenceException {
         Optional<Customer> cachedCustomer = findInCache(id);
         if (cachedCustomer.isPresent()) {
-            System.out.println("Customer found in cache: " + id);
+            System.out.println("Customer found in cache: " + id); // TODO - vérifier la nécessité de cette ligne
             return cachedCustomer.get();
         }
 
@@ -82,12 +74,10 @@ public class CustomerMapper extends BaseMapper<Customer> {
                 if (customer != null && customer.getId() != null) {
                     addToCache(customer.getId(), customer);
                 }
-
             }
         } catch (SQLException e) {
             throw new CustomerPersistenceException("Erreur lors de la recherche du client par ID", e);
         }
-
         return customer;
     }
 
@@ -95,8 +85,6 @@ public class CustomerMapper extends BaseMapper<Customer> {
 
     public void update(Customer customer, Connection conn) throws CustomerPersistenceException {
         String query = "UPDATE CLIENT SET telephone = ?, nom = ?, code_postal = ?, localite = ?, rue = ?, num_rue = ?, pays = ?, est_une_femme = ?, prenom = ?, forme_sociale = ? WHERE email = ?";
-
-
 
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
             CustomerUtils.setPreparedStatementForCustomer(stmt, customer, CustomerUtils.QueryType.UPDATE);
@@ -114,7 +102,9 @@ public class CustomerMapper extends BaseMapper<Customer> {
 
             stmt.setLong(1, id);
             stmt.executeUpdate();
-            removeFromCache(id);
+            if (findInCache(id).isPresent()) {
+                removeFromCache(id);
+            }
         } catch (SQLException e) {
             throw new CustomerPersistenceException("Erreur lors de la suppression du client", e);
         }

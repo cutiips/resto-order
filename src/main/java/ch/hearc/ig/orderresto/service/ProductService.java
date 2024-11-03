@@ -3,168 +3,88 @@ package ch.hearc.ig.orderresto.service;
 import ch.hearc.ig.orderresto.business.Product;
 import ch.hearc.ig.orderresto.persistence.exceptions.ProductPersistenceException;
 import ch.hearc.ig.orderresto.persistence.mappers.ProductMapper;
-import ch.hearc.ig.orderresto.persistence.utils.ConnectionManager;
+import ch.hearc.ig.orderresto.service.exceptions.ProductServiceException;
+import ch.hearc.ig.orderresto.service.utils.TransactionHandler;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
-// TODO : implémenter ProductPersistenceException
 public class ProductService {
-    private final ProductMapper productMapper = new ProductMapper();
 
-    public Product getProductById(Long id, Connection conn) throws ProductPersistenceException {
-        return productMapper.findById(id, conn);
+    private final ProductMapper productMapper;
+    private final TransactionHandler transactionHandler;
+
+    public ProductService() {
+        this.productMapper = new ProductMapper();
+        this.transactionHandler = new TransactionHandler();
     }
 
-    public Product getProductById(Long id) throws ProductPersistenceException {
-        Connection conn = null;
+    public ProductService(ProductMapper productMapper, TransactionHandler transactionHandler) {
+        this.productMapper = productMapper;
+        this.transactionHandler = transactionHandler;
+    }
+
+    public Product getProductById(Long id) throws ProductServiceException {
         try {
-            conn = ConnectionManager.getConnection();
-            return productMapper.findById(id, conn);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            if (conn != null) {
-                try {
-                    conn.close();
-                } catch (SQLException closeEx) {
-                    System.err.println("Error while closing connection: " + closeEx.getMessage());
-                }
-            }
+            return transactionHandler.executeInTransaction(conn -> productMapper.read(id, conn));
+        } catch (Exception e) {
+            throw new ProductServiceException("Error while getting product by id", e);
         }
     }
 
-    public void addProduct(Product product) throws ProductPersistenceException {
-        Connection conn = null;
-
+    public boolean addProduct(Product product) throws ProductServiceException {
         try {
-            conn = ConnectionManager.getConnection();
-            conn.setAutoCommit(false);
-
-            productMapper.insert(product, conn);
-            conn.commit();
-
+            transactionHandler.executeInTransaction(conn -> {
+                productMapper.insert(product, conn);
+                return null; // Void equivalent
+            });
             System.out.println("Product added successfully!");
-        } catch (ProductPersistenceException e) {
-            if (conn != null) {
-                try {
-                    conn.rollback();
-                } catch (SQLException rollbackEx) {
-                    System.err.println("Error during transaction rollback: " + rollbackEx.getMessage());
-                }
-            }
-            System.err.println("Error while adding product: " + e.getMessage());
-        } catch (SQLException e) {
-            if (conn != null) {
-                try {
-                    conn.rollback();
-                } catch (SQLException rollbackEx) {
-                    System.err.println("Error during transaction rollback: " + rollbackEx.getMessage());
-                }
-            }
-            throw new RuntimeException(e);
-        } finally {
-            if (conn != null) {
-                try {
-                    conn.setAutoCommit(true);
-                    conn.close();
-                } catch (SQLException closeEx) {
-                    System.err.println("Error while closing connection: " + closeEx.getMessage());
-                }
-            }
+            return true;
+        } catch (Exception e) {
+            throw new ProductServiceException("Failed to add product", e);
         }
     }
 
-
-    public List<Product> getProductsByRestaurantId(Long restaurantId) throws ProductPersistenceException {
-        Connection conn = null;
-
+    public List<Product> getProductsByRestaurantId(Long restaurantId) throws ProductServiceException {
         try {
-            conn = ConnectionManager.getConnection();
-            return productMapper.getProductsByRestaurantId(restaurantId, conn);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            if (conn != null) {
-                try {
-                    conn.close();
-                } catch (SQLException closeEx) {
-                    System.err.println("Error while closing connection: " + closeEx.getMessage());
-                }
-            }
+            return transactionHandler.executeInTransaction(conn -> productMapper.getProductsByRestaurantId(restaurantId, conn));
+        } catch (Exception e) {
+            throw new ProductServiceException("Failed to get products by restaurant id", e);
         }
     }
 
-    public void updateProduct(Product product) throws ProductPersistenceException {
-        Connection conn = null;
-
+    public boolean updateProduct(Product product) throws ProductServiceException {
         try {
-            conn = ConnectionManager.getConnection();
-            conn.setAutoCommit(false);
-
-            productMapper.update(product, conn);
-            conn.commit();
-
+            transactionHandler.executeInTransaction(conn -> {
+                productMapper.update(product, conn);
+                return null; // Void equivalent
+            });
             System.out.println("Product updated successfully!");
-        } catch (ProductPersistenceException e) {
-            try {
-                conn.rollback();
-            } catch (Exception rollbackEx) {
-                System.err.println("Error during transaction rollback: " + rollbackEx.getMessage());
-            }
-            System.err.println("Error while updating product: " + e.getMessage());
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            if (conn != null) {
-                try {
-                    conn.setAutoCommit(true);
-                    conn.close();
-                } catch (Exception closeEx) {
-                    System.err.println("Error while closing connection: " + closeEx.getMessage());
-                }
-            }
+            return true;
+        } catch (Exception e) {
+            throw new ProductServiceException("Failed to update product", e);
         }
     }
 
-    public void deleteProduct(Long id) throws ProductPersistenceException {
-        Connection conn = null;
-
+    public boolean deleteProduct(Long id) throws ProductServiceException {
         try {
-            conn = ConnectionManager.getConnection();
-            conn.setAutoCommit(false);
-
-            productMapper.delete(id, conn);
-            conn.commit();
-
+            transactionHandler.executeInTransaction(conn -> {
+                productMapper.delete(id, conn);
+                return null; // Void equivalent
+            });
             System.out.println("Product deleted successfully!");
-        } catch (ProductPersistenceException e) {
-            try {
-                conn.rollback();
-            } catch (Exception rollbackEx) {
-                System.err.println("Error during transaction rollback: " + rollbackEx.getMessage());
-            }
-            System.err.println("Error while deleting product: " + e.getMessage());
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            if (conn != null) {
-                try {
-                    conn.setAutoCommit(true);
-                    conn.close();
-                } catch (Exception closeEx) {
-                    System.err.println("Error while closing connection: " + closeEx.getMessage());
-                }
-            }
+            return true;
+        } catch (Exception e) {
+            throw new ProductServiceException("Failed to delete product", e);
         }
     }
 
-
+    public List<Product> getAllProducts() throws ProductServiceException {
+        try {
+            return transactionHandler.executeInTransaction(productMapper::findAll);
+        } catch (Exception e) {
+            throw new ProductServiceException("Failed to get all products", e);
+        }
+    }
 }
-
-
-
-
-
-

@@ -4,7 +4,6 @@ import ch.hearc.ig.orderresto.business.Address;
 import ch.hearc.ig.orderresto.business.Restaurant;
 import ch.hearc.ig.orderresto.persistence.exceptions.ProductPersistenceException;
 import ch.hearc.ig.orderresto.persistence.exceptions.RestaurantPersistenceException;
-import ch.hearc.ig.orderresto.persistence.mappers.RestaurantMapper;
 import ch.hearc.ig.orderresto.presentation.AbstractCLI;
 import ch.hearc.ig.orderresto.service.RestaurantService;
 
@@ -81,7 +80,7 @@ public class RestaurantCLI extends AbstractCLI {
         try {
             restaurantService.addRestaurant(restaurant);
             this.ln("Restaurant ajouté avec succès !");
-        } catch (ProductPersistenceException e) {
+        } catch (ch.hearc.ig.orderresto.service.exceptions.RestaurantServiceException e) {
             throw new RuntimeException(e);
         }
     }
@@ -157,6 +156,8 @@ public class RestaurantCLI extends AbstractCLI {
 
         } catch (SQLException | ProductPersistenceException e) {
             this.ln("Erreur lors de la mise à jour du restaurant : " + e.getMessage());
+        } catch (ch.hearc.ig.orderresto.service.exceptions.RestaurantServiceException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -200,7 +201,11 @@ public class RestaurantCLI extends AbstractCLI {
 
         this.ln("Entrez l'ID du restaurant à supprimer : ");
         Long id = this.readLongFromUser();
-        restaurantService.deleteRestaurant(id);
+        try {
+            restaurantService.deleteRestaurant(id);
+        } catch (ch.hearc.ig.orderresto.service.exceptions.RestaurantServiceException e) {
+            throw new RuntimeException(e);
+        }
         this.ln("Restaurant supprimé avec succès !");
 
     }
@@ -210,7 +215,12 @@ public class RestaurantCLI extends AbstractCLI {
      * Utilise la méthode displayRestaurant pour afficher chaque restaurant.
      */
     private void displayAllRestaurants() {
-        List<Restaurant> restaurants = restaurantService.getAllRestaurants();
+        List<Restaurant> restaurants = null;
+        try {
+            restaurants = restaurantService.getAllRestaurants();
+        } catch (ch.hearc.ig.orderresto.service.exceptions.RestaurantServiceException e) {
+            throw new RuntimeException(e);
+        }
         if (restaurants.isEmpty()) {
             this.ln("Aucun restaurant trouvé.");
         } else {
@@ -226,7 +236,12 @@ public class RestaurantCLI extends AbstractCLI {
      */
     public Restaurant displayRestaurantIdsAndNames() throws RestaurantPersistenceException {
         this.ln("Choisissez un restaurant:");
-        List<Restaurant> allRestaurants = restaurantService.getAllRestaurants();
+        List<Restaurant> allRestaurants = null;
+        try {
+            allRestaurants = restaurantService.getAllRestaurants();
+        } catch (ch.hearc.ig.orderresto.service.exceptions.RestaurantServiceException e) {
+            throw new RuntimeException(e);
+        }
         for (int i = 0 ; i < allRestaurants.size() ; i++) {
             Restaurant restaurant = (Restaurant) allRestaurants.get(i);
             this.ln(String.format("%d. ID: %d - Nom: %s.", i, restaurant.getId(), restaurant.getName()));

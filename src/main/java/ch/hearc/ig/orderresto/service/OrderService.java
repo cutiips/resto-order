@@ -3,67 +3,89 @@ package ch.hearc.ig.orderresto.service;
 import ch.hearc.ig.orderresto.business.Customer;
 import ch.hearc.ig.orderresto.business.Order;
 import ch.hearc.ig.orderresto.persistence.mappers.OrderMapper;
-import ch.hearc.ig.orderresto.persistence.utils.ConnectionManager;
+import ch.hearc.ig.orderresto.service.exceptions.OrderServiceException;
+import ch.hearc.ig.orderresto.service.utils.TransactionHandler;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
-//TODO : implémenter OrderServiceException
 public class OrderService {
+    private final OrderMapper orderMapper;
+    private final TransactionHandler transactionHandler;
 
-    private final OrderMapper orderMapper = new OrderMapper();
+    public OrderService() {
+        this.orderMapper = new OrderMapper();
+        this.transactionHandler = new TransactionHandler();
+    }
 
-    public boolean createOrder(Order order) {
-        Connection conn = null;
+    public OrderService(OrderMapper orderMapper, TransactionHandler transactionHandler) {
+        this.orderMapper = orderMapper;
+        this.transactionHandler = transactionHandler;
+    }
+
+    public boolean createOrder(Order order) throws OrderServiceException {
         try {
-            conn = ConnectionManager.getConnection();
-            conn.setAutoCommit(false);
-
-            orderMapper.insert(order, conn);
-            conn.commit();
-
+            transactionHandler.executeInTransaction(conn -> {
+                orderMapper.insert(order, conn);
+                return null; // Void equivalent
+            });
             System.out.println("Order created successfully!");
             return true;
-        } catch (SQLException e) {
-            if (conn != null) {
-                try {
-                    conn.rollback();
-                } catch (SQLException rollbackEx) {
-                    System.err.println("Error during transaction rollback: " + rollbackEx.getMessage());
-                }
-            }
-            System.err.println("Error while creating order: " + e.getMessage());
-            return false;
-        } finally {
-            if (conn != null) {
-                try {
-                    conn.setAutoCommit(true);
-                    conn.close();
-                } catch (SQLException closeEx) {
-                    System.err.println("Error while closing connection: " + closeEx.getMessage());
-                }
-            }
+        } catch (Exception e) {
+            throw new OrderServiceException("Failed to create order", e);
         }
     }
 
-    public List<Order> findOrdersByCustomer(Customer customer) {
-        Connection conn = null;
-        List<Order> orders = null;
+    public List<Order> findOrdersByCustomer(Customer customer) throws OrderServiceException {
         try {
-            conn = ConnectionManager.getConnection();
-            orders = orderMapper.findOrdersByCustomer(customer, conn);
-        } catch (SQLException e) {
-            System.err.println("Error while finding orders: " + e.getMessage());
-        } finally {
-            if (conn != null) {
-                try {
-                    conn.close();
-                } catch (SQLException closeEx) {
-                    System.err.println("Error while closing connection: " + closeEx.getMessage());
-                }
-            }
+            return transactionHandler.executeInTransaction(conn -> orderMapper.findOrdersByCustomer(customer, conn));
+        } catch (Exception e) {
+            throw new OrderServiceException("Failed to find orders by customer", e);
         }
-        return orders;
+    }
+
+    public Order getOrderById(Long id) throws OrderServiceException {
+        try {
+            return transactionHandler.executeInTransaction(conn -> orderMapper.read(id, conn));
+        } catch (Exception e) {
+            throw new OrderServiceException("Failed to get order by id", e);
+        }
+    }
+
+    @Deprecated
+    public List<Order> getAllOrders() {
+        try {
+            return transactionHandler.executeInTransaction(orderMapper::findAll);
+        } catch (Exception e) {
+            System.err.println("Error while finding orders: " + e.getMessage());
+            return null;
+        }
+    }
+
+    public boolean updateOrder(Order order) throws OrderServiceException {
+        try {
+            transactionHandler.executeInTransaction(conn -> {
+                orderMapper.update(order, conn);
+                return null; // Void equivalent
+            });
+            System.out.println("Order updated successfully!");
+            return true;
+        } catch (Exception e) {
+            throw new OrderServiceException("Failed to update order", e);
+        }
+    }
+
+    public boolean deleteOrder(Order order) throws OrderServiceException {
+        try {
+            transactionHandler.executeInTransaction(conn -> {
+                orderMapper.delete(order.getId(), conn);
+                return null; // Void equivalent
+            });
+            System.out.println("Order deleted successfully!");
+            return true;
+        } catch (Exception e) {
+            throw new OrderServiceException("Failed to delete order", e);
+        }
     }
 }

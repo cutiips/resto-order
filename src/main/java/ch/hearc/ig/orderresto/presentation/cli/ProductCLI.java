@@ -71,7 +71,11 @@ public class ProductCLI extends AbstractCLI {
 
         Product product = new Product(null, name, unitPrice, description, restaurant);
 
-        productService.addProduct(product);
+        try {
+            productService.addProduct(product);
+        } catch (ch.hearc.ig.orderresto.service.exceptions.ProductServiceException e) {
+            throw new RuntimeException(e);
+        }
         this.ln("Produit ajouté avec succès !");
     }
 
@@ -79,7 +83,12 @@ public class ProductCLI extends AbstractCLI {
         this.ln("Voici la liste des produits (ID et Nom) :");
 
         // Récupérer les produits associés au restaurant
-        List<Product> products = productService.getProductsByRestaurantId(restaurant.getId());
+        List<Product> products = null;
+        try {
+            products = productService.getProductsByRestaurantId(restaurant.getId());
+        } catch (ch.hearc.ig.orderresto.service.exceptions.ProductServiceException e) {
+            throw new RuntimeException(e);
+        }
 
         if (products.isEmpty()) {
             this.ln("Aucun produit trouvé pour ce restaurant.");
@@ -95,7 +104,12 @@ public class ProductCLI extends AbstractCLI {
         Long id = this.readLongFromUser();
 
         // Vérifier si le produit existe
-        Product existingProduct = productService.getProductById(id);
+        Product existingProduct = null;
+        try {
+            existingProduct = productService.getProductById(id);
+        } catch (ch.hearc.ig.orderresto.service.exceptions.ProductServiceException e) {
+            throw new RuntimeException(e);
+        }
         if (existingProduct == null || !existingProduct.getRestaurant().getId().equals(restaurant.getId())) {
             this.ln("Produit non trouvé ou n'appartient pas à ce restaurant.");
             return;
@@ -122,7 +136,11 @@ public class ProductCLI extends AbstractCLI {
         Product updatedProduct = new Product(id, newName, newUnitPrice, newDescription, restaurant);
 
         // Mettre à jour le produit dans la base de données
-        productService.updateProduct(updatedProduct);
+        try {
+            productService.updateProduct(updatedProduct);
+        } catch (ch.hearc.ig.orderresto.service.exceptions.ProductServiceException e) {
+            throw new RuntimeException(e);
+        }
         this.ln("Produit mis à jour avec succès !");
     }
 
@@ -130,7 +148,11 @@ public class ProductCLI extends AbstractCLI {
     public void deleteProduct() throws SQLException, ProductPersistenceException {
         this.ln("Entrez l'ID du produit à supprimer : ");
         Long id = this.readLongFromUser();
-        productService.deleteProduct(id);
+        try {
+            productService.deleteProduct(id);
+        } catch (ch.hearc.ig.orderresto.service.exceptions.ProductServiceException e) {
+            throw new RuntimeException(e);
+        }
         this.ln("Produit supprimé avec succès !");
     }
 
@@ -155,7 +177,7 @@ public class ProductCLI extends AbstractCLI {
 
             selectProductFromList(products);
 
-        } catch (ProductPersistenceException e) {
+        } catch (ch.hearc.ig.orderresto.service.exceptions.ProductServiceException e) {
             throw new RuntimeException(e);
         }
         return null;
@@ -175,7 +197,12 @@ public class ProductCLI extends AbstractCLI {
 
         ProductService productService = new ProductService();
         // récupérer les produits du restaurant
-        List<Product> products = productService.getProductsByRestaurantId(restaurant.getId());
+        List<Product> products = null;
+        try {
+            products = productService.getProductsByRestaurantId(restaurant.getId());
+        } catch (ch.hearc.ig.orderresto.service.exceptions.ProductServiceException e) {
+            throw new RuntimeException(e);
+        }
 
         if (products.isEmpty()) {
             this.ln("Aucun produit disponible pour ce restaurant.");

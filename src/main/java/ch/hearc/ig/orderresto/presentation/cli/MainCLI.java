@@ -1,21 +1,17 @@
-package ch.hearc.ig.orderresto.presentation;
+package ch.hearc.ig.orderresto.presentation.cli;
 
 import ch.hearc.ig.orderresto.business.*;
 import ch.hearc.ig.orderresto.persistence.exceptions.CustomerPersistenceException;
 import ch.hearc.ig.orderresto.persistence.exceptions.ProductPersistenceException;
 import ch.hearc.ig.orderresto.persistence.exceptions.RestaurantPersistenceException;
-import ch.hearc.ig.orderresto.presentation.cli.AddressCLI;
-import ch.hearc.ig.orderresto.presentation.cli.OrderCLI;
-import ch.hearc.ig.orderresto.presentation.cli.RestaurantCLI;
-import ch.hearc.ig.orderresto.service.CustomerService;
-import ch.hearc.ig.orderresto.presentation.cli.CustomerCLI;
+import ch.hearc.ig.orderresto.presentation.AbstractCLI;
+import ch.hearc.ig.orderresto.service.exceptions.CustomerServiceException;
 
 
 import java.sql.SQLException;
-import java.util.Objects;
 
 public class MainCLI extends AbstractCLI {
-    public void run() throws SQLException, ProductPersistenceException, RestaurantPersistenceException, CustomerPersistenceException {
+    public void run() throws SQLException, ProductPersistenceException, RestaurantPersistenceException, CustomerPersistenceException, CustomerServiceException {
         this.ln("======================================================");
         this.ln("Que voulez-vous faire ?");
         this.ln("0. Quitter l'application");
@@ -26,7 +22,7 @@ public class MainCLI extends AbstractCLI {
         this.handleUserChoice(userChoice);
     }
 
-    private void handleUserChoice(int userChoice) throws SQLException, ProductPersistenceException, RestaurantPersistenceException, CustomerPersistenceException {
+    private void handleUserChoice(int userChoice) throws SQLException, ProductPersistenceException, RestaurantPersistenceException, CustomerPersistenceException, CustomerServiceException {
         if (userChoice == 0) {
             this.ln("Good bye!");
             return;

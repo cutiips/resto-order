@@ -12,7 +12,7 @@ import java.sql.SQLException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class ProductTests {
+public class ProductMapperTests {
 
     private static Connection conn;
     private ProductMapper productMapper;
@@ -73,7 +73,7 @@ public class ProductTests {
         productMapper.insert(product, conn);
 
         // Act
-        Product readProduct = productMapper.findById(product.getId(), conn);
+        Product readProduct = productMapper.read(product.getId(), conn);
 
         // Assert
         assertNotNull(readProduct, "Product should be retrievable by ID");
@@ -96,7 +96,7 @@ public class ProductTests {
         product.setUnitPrice(new BigDecimal("11.00"));
         assertDoesNotThrow(() -> productMapper.update(product, conn));
 
-        Product updatedProduct = productMapper.findById(product.getId(), conn);
+        Product updatedProduct = productMapper.read(product.getId(), conn);
 
         // Assert
         assertNotNull(updatedProduct, "Updated product should be retrievable by ID");
@@ -116,7 +116,87 @@ public class ProductTests {
 
         // Act & Assert
         assertDoesNotThrow(() -> productMapper.delete(product.getId(), conn));
-        Product deletedProduct = productMapper.findById(product.getId(), conn);
+        Product deletedProduct = productMapper.read(product.getId(), conn);
         assertNull(deletedProduct, "Product should no longer be retrievable after deletion");
+    }
+
+    @Test
+    public void testCacheAfterInsertProduct() throws SQLException, RestaurantPersistenceException, ProductPersistenceException {
+        // Arrange
+        Address address = new Address("CH", "1000", "Lausanne", "Rue", "1");
+        Restaurant restaurant = new Restaurant(null, "Cache Resto", address);
+        restaurantMapper.insert(restaurant, conn);
+
+        Product product = new Product(null, "Steak", new BigDecimal("25.00"), "Juicy steak", restaurant);
+
+        // Act
+        productMapper.insert(product, conn);
+        Product cachedProduct = productMapper.findInCache(product.getId()).orElse(null);
+
+        // Assert
+        assertNotNull(cachedProduct, "Product should be in cache after insertion");
+        assertEquals(product.getId(), cachedProduct.getId(), "Product ID should match");
+        assertEquals(product.getName(), cachedProduct.getName(), "Product name should match");
+    }
+
+    @Test
+    public void testCacheAfterUpdateProduct() throws SQLException, RestaurantPersistenceException, ProductPersistenceException {
+        // Arrange
+        Address address = new Address("CH", "1000", "Lausanne", "Rue", "1");
+        Restaurant restaurant = new Restaurant(null, "Cache Resto", address);
+        restaurantMapper.insert(restaurant, conn);
+
+        Product product = new Product(null, "Steak", new BigDecimal("25.00"), "Juicy steak", restaurant);
+        productMapper.insert(product, conn);
+
+        // Act
+        product.setName("Updated Steak");
+        product.setUnitPrice(new BigDecimal("30.00"));
+        productMapper.update(product, conn);
+        Product cachedProduct = productMapper.findInCache(product.getId()).orElse(null);
+
+        // Assert
+        assertNotNull(cachedProduct, "Product should be in cache after update");
+        assertEquals(product.getId(), cachedProduct.getId(), "Product ID should match");
+        assertEquals("Updated Steak", cachedProduct.getName(), "Product name should match");
+        assertEquals(new BigDecimal("30.00"), cachedProduct.getUnitPrice(), "Product price should match");
+    }
+
+    @Test
+    public void testCacheAfterDeleteProduct() throws SQLException, RestaurantPersistenceException, ProductPersistenceException {
+        // Arrange
+        Address address = new Address("CH", "1000", "Lausanne", "Rue", "1");
+        Restaurant restaurant = new Restaurant(null, "Cache Resto", address);
+        restaurantMapper.insert(restaurant, conn);
+
+        Product product = new Product(null, "Steak", new BigDecimal("25.00"), "Juicy steak", restaurant);
+        productMapper.insert(product, conn);
+
+        // Act
+        productMapper.delete(product.getId(), conn);
+        Product cachedProduct = productMapper.findInCache(product.getId()).orElse(null);
+
+        // Assert
+        assertNull(cachedProduct, "Product should not be in cache after deletion");
+    }
+
+    @Test
+    public void testCacheAfterReadProduct() throws SQLException, RestaurantPersistenceException, ProductPersistenceException {
+        // Arrange
+        Address address = new Address("CH", "1000", "Lausanne", "Rue", "1");
+        Restaurant restaurant = new Restaurant(null, "Cache Resto", address);
+        restaurantMapper.insert(restaurant, conn);
+
+        Product product = new Product(null, "Steak", new BigDecimal("25.00"), "Juicy steak", restaurant);
+        productMapper.insert(product, conn);
+
+        // Act
+        Product readProduct = productMapper.read(product.getId(), conn);
+        Product cachedProduct = productMapper.findInCache(product.getId()).orElse(null);
+
+        // Assert
+        assertNotNull(cachedProduct, "Product should be in cache after read");
+        assertEquals(product.getId(), cachedProduct.getId(), "Product ID should match");
+        assertEquals(product.getName(), cachedProduct.getName(), "Product name should match");
     }
 }
