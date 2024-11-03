@@ -81,7 +81,7 @@ public class RestaurantCLI extends AbstractCLI {
         try {
             restaurantService.addRestaurant(restaurant);
             this.ln("Restaurant ajouté avec succès !");
-        } catch (ProductPersistenceException e) {
+        } catch (ProductPersistenceException | RestaurantPersistenceException e) {
             throw new RuntimeException(e);
         }
     }

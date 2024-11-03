@@ -11,17 +11,27 @@ import java.util.List;
 
 // TODO : implémenter ProductPersistenceException
 public class ProductService {
-    private final ProductMapper productMapper = new ProductMapper();
+    //private final ProductMapper productMapper = new ProductMapper();
+
+    private final ProductMapper productMapper;
+
+    public ProductService() {
+        this.productMapper = new ProductMapper();
+    }
+
+    public ProductService(ProductMapper productMapper) {
+        this.productMapper = productMapper;
+    }
 
     public Product getProductById(Long id, Connection conn) throws ProductPersistenceException {
-        return productMapper.findById(id, conn);
+        return productMapper.read(id, conn);
     }
 
     public Product getProductById(Long id) throws ProductPersistenceException {
         Connection conn = null;
         try {
             conn = ConnectionManager.getConnection();
-            return productMapper.findById(id, conn);
+            return productMapper.read(id, conn);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
@@ -35,7 +45,7 @@ public class ProductService {
         }
     }
 
-    public void addProduct(Product product) throws ProductPersistenceException {
+    public boolean addProduct(Product product) throws ProductPersistenceException {
         Connection conn = null;
 
         try {
@@ -46,6 +56,7 @@ public class ProductService {
             conn.commit();
 
             System.out.println("Product added successfully!");
+            return true;
         } catch (ProductPersistenceException e) {
             if (conn != null) {
                 try {
@@ -54,7 +65,7 @@ public class ProductService {
                     System.err.println("Error during transaction rollback: " + rollbackEx.getMessage());
                 }
             }
-            System.err.println("Error while adding product: " + e.getMessage());
+            throw e; // Propager l'exception au lieu de la gérer
         } catch (SQLException e) {
             if (conn != null) {
                 try {
@@ -63,7 +74,7 @@ public class ProductService {
                     System.err.println("Error during transaction rollback: " + rollbackEx.getMessage());
                 }
             }
-            throw new RuntimeException(e);
+            throw new ProductPersistenceException("Error while adding product", e);
         } finally {
             if (conn != null) {
                 try {
@@ -75,6 +86,7 @@ public class ProductService {
             }
         }
     }
+
 
 
     public List<Product> getProductsByRestaurantId(Long restaurantId) throws ProductPersistenceException {
@@ -96,7 +108,7 @@ public class ProductService {
         }
     }
 
-    public void updateProduct(Product product) throws ProductPersistenceException {
+    public boolean updateProduct(Product product) throws ProductPersistenceException {
         Connection conn = null;
 
         try {
@@ -107,6 +119,7 @@ public class ProductService {
             conn.commit();
 
             System.out.println("Product updated successfully!");
+            return true;
         } catch (ProductPersistenceException e) {
             try {
                 conn.rollback();
@@ -114,6 +127,7 @@ public class ProductService {
                 System.err.println("Error during transaction rollback: " + rollbackEx.getMessage());
             }
             System.err.println("Error while updating product: " + e.getMessage());
+            return false;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
@@ -128,7 +142,7 @@ public class ProductService {
         }
     }
 
-    public void deleteProduct(Long id) throws ProductPersistenceException {
+    public boolean deleteProduct(Long id) throws ProductPersistenceException {
         Connection conn = null;
 
         try {
@@ -139,6 +153,7 @@ public class ProductService {
             conn.commit();
 
             System.out.println("Product deleted successfully!");
+            return true;
         } catch (ProductPersistenceException e) {
             try {
                 conn.rollback();
@@ -146,6 +161,7 @@ public class ProductService {
                 System.err.println("Error during transaction rollback: " + rollbackEx.getMessage());
             }
             System.err.println("Error while deleting product: " + e.getMessage());
+            return false;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
@@ -154,6 +170,25 @@ public class ProductService {
                     conn.setAutoCommit(true);
                     conn.close();
                 } catch (Exception closeEx) {
+                    System.err.println("Error while closing connection: " + closeEx.getMessage());
+                }
+            }
+        }
+    }
+
+    public List<Product> getAllProducts() throws ProductPersistenceException {
+        Connection conn = null;
+
+        try {
+            conn = ConnectionManager.getConnection();
+            return productMapper.findAll(conn);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException closeEx) {
                     System.err.println("Error while closing connection: " + closeEx.getMessage());
                 }
             }

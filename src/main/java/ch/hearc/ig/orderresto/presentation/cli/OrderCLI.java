@@ -8,7 +8,6 @@ import ch.hearc.ig.orderresto.persistence.exceptions.CustomerPersistenceExceptio
 import ch.hearc.ig.orderresto.persistence.exceptions.ProductPersistenceException;
 import ch.hearc.ig.orderresto.persistence.exceptions.RestaurantPersistenceException;
 import ch.hearc.ig.orderresto.presentation.AbstractCLI;
-import ch.hearc.ig.orderresto.presentation.MainCLI;
 import ch.hearc.ig.orderresto.service.OrderService;
 
 import java.sql.SQLException;
@@ -18,6 +17,7 @@ import java.util.List;
 
 public class OrderCLI extends AbstractCLI {
     private final OrderService orderService = new OrderService();
+
 
     public Order createNewOrder() throws SQLException, RestaurantPersistenceException, CustomerPersistenceException, ProductPersistenceException {
 

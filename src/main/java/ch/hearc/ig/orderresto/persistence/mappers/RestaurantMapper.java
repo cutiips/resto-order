@@ -33,7 +33,7 @@ public class RestaurantMapper extends BaseMapper<Restaurant> {
         }
     }
 
-    public Restaurant findById(Long id, Connection conn) throws RestaurantPersistenceException {
+    public Restaurant read(Long id, Connection conn) throws RestaurantPersistenceException {
         // Vérifie si le restaurant est déjà dans le cache
         return findInCache(id).orElseGet(() -> {
             String query = "SELECT nom, code_postal, localite, rue, num_rue, pays FROM RESTAURANT WHERE numero = ?";

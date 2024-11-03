@@ -1,14 +1,13 @@
-package ch.hearc.ig.orderresto.persistence.service;
+package ch.hearc.ig.orderresto.service;
 
 import ch.hearc.ig.orderresto.business.Address;
 import ch.hearc.ig.orderresto.business.OrganizationCustomer;
 import ch.hearc.ig.orderresto.business.PrivateCustomer;
 import ch.hearc.ig.orderresto.persistence.exceptions.CustomerPersistenceException;
 import ch.hearc.ig.orderresto.persistence.utils.ConnectionManager;
-import ch.hearc.ig.orderresto.service.CustomerService;
 import org.junit.jupiter.api.*;
+import org.mockito.Mockito;
 
-import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.SQLException;
 

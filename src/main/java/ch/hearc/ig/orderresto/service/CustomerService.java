@@ -11,7 +11,17 @@ import java.sql.SQLException;
 //TODO : implémenter CustomerServiceException
 public class CustomerService {
 
-    private final CustomerMapper customerMapper = new CustomerMapper();
+    //private final CustomerMapper customerMapper = new CustomerMapper();
+
+    private final CustomerMapper customerMapper;
+
+    public CustomerService() {
+        this.customerMapper = new CustomerMapper();
+    }
+
+    public CustomerService(CustomerMapper customerMapper) {
+        this.customerMapper = customerMapper;
+    }
 
     public void addCustomer(Customer customer) {
         Connection conn = null;
@@ -49,7 +59,7 @@ public class CustomerService {
         Customer customer = null;
         try {
             conn = ConnectionManager.getConnection();
-            customer = customerMapper.read(email, conn);
+            customer = customerMapper.findByEmail(email, conn);
         } catch (SQLException | CustomerPersistenceException e) {
             System.err.println("Error while reading customer: " + e.getMessage());
         } finally {
@@ -65,7 +75,7 @@ public class CustomerService {
     }
 
     public Customer getCustomerById(Long id, Connection conn) throws CustomerPersistenceException {
-        return customerMapper.findById(id, conn);
+        return customerMapper.read(id, conn);
     }
 
     public void updateCustomer(Customer customer) {

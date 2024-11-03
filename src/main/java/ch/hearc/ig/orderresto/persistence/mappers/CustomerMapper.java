@@ -41,7 +41,7 @@ public class CustomerMapper extends BaseMapper<Customer> {
     }
 
 
-    public Customer read(String email, Connection conn) throws CustomerPersistenceException {
+    public Customer findByEmail(String email, Connection conn) throws CustomerPersistenceException {
         String query = "SELECT * FROM CLIENT WHERE email = ?";
         Customer customer = null;
 
@@ -62,7 +62,7 @@ public class CustomerMapper extends BaseMapper<Customer> {
         return customer;
     }
 
-    public Customer findById(Long id, Connection conn) throws CustomerPersistenceException {
+    public Customer read(Long id, Connection conn) throws CustomerPersistenceException {
         Optional<Customer> cachedCustomer = findInCache(id);
         if (cachedCustomer.isPresent()) {
             System.out.println("Customer found in cache: " + id);

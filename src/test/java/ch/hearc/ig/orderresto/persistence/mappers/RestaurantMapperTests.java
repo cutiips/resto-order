@@ -15,7 +15,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class RestaurantTests {
+public class RestaurantMapperTests {
 
     private static Connection conn;
     private RestaurantMapper restaurantMapper;

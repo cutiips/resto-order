@@ -17,7 +17,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class OrderTests {
+public class OrderMapperTests {
 
     private static Connection conn;
     private OrderMapper orderMapper;

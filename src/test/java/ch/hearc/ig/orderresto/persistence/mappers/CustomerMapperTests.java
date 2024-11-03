@@ -17,7 +17,7 @@ import java.sql.SQLException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class CustomerTests {
+public class CustomerMapperTests {
 
     private static Connection conn;
     private CustomerMapper customerMapper;

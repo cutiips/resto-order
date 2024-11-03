@@ -7,7 +7,6 @@ import ch.hearc.ig.orderresto.business.Restaurant;
 import ch.hearc.ig.orderresto.persistence.exceptions.CustomerPersistenceException;
 import ch.hearc.ig.orderresto.persistence.exceptions.ProductPersistenceException;
 import ch.hearc.ig.orderresto.persistence.exceptions.RestaurantPersistenceException;
-import ch.hearc.ig.orderresto.persistence.utils.ConnectionManager;
 import ch.hearc.ig.orderresto.service.CustomerService;
 import ch.hearc.ig.orderresto.service.ProductService;
 import ch.hearc.ig.orderresto.service.RestaurantService;
@@ -24,7 +23,7 @@ public class OrderMapper {
     private final ProductService productService = new ProductService();
 
     // Méthode pour trouver une commande par ID
-    public Order findById(Long id, Connection conn) throws SQLException {
+    public Order read(Long id, Connection conn) throws SQLException {
         Order order = null;
         String sql = "SELECT numero, fk_client, fk_resto, a_emporter, quand FROM Commande WHERE numero = ?";
 
@@ -175,5 +174,22 @@ public class OrderMapper {
             throw new RuntimeException(e);
         }
         return orders;
+    }
+
+    // Update: Update an existing order
+    public void update(Order order, Connection conn) throws SQLException {
+        String sql = "UPDATE Commande SET fk_client = ?, fk_resto = ?, a_emporter = ?, quand = ? WHERE numero = ?";
+
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            statement.setLong(1, order.getCustomer().getId());
+            statement.setLong(2, order.getRestaurant().getId());
+            statement.setString(3, order.getTakeAway() ? "O" : "N");
+            statement.setTimestamp(4, Timestamp.valueOf(order.getWhen()));
+            statement.setLong(5, order.getId());
+            statement.executeUpdate();
+
+            deleteOrderProducts(order.getId(), conn);
+            insertOrderProducts(order, conn);
+        }
     }
 }
