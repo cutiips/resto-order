@@ -105,7 +105,12 @@ public class OrderMapper {
         Customer customer = customerService.getCustomerById(customerId, conn);
 
         Long restaurantId = rs.getLong("fk_resto");
-        Restaurant restaurant = new RestaurantService().getRestaurantById(restaurantId);
+        Restaurant restaurant = null;
+        try {
+            restaurant = new RestaurantService().getRestaurantById(restaurantId);
+        } catch (ch.hearc.ig.orderresto.service.exceptions.RestaurantServiceException e) {
+            throw new RuntimeException(e);
+        }
 
         Boolean takeAway = "Y".equalsIgnoreCase(rs.getString("a_emporter"));
         LocalDateTime when = rs.getTimestamp("quand").toLocalDateTime();

@@ -85,6 +85,8 @@ public class ProductServiceTests {
             result = productService.addProduct(product);
         } catch (ProductPersistenceException e) {
             // Ne pas relancer l'exception ici, car nous la testons
+        } catch (ch.hearc.ig.orderresto.service.exceptions.ProductServiceException e) {
+            throw new RuntimeException(e);
         }
 
         assertFalse(result, "Product creation should fail and rollback");
@@ -105,6 +107,8 @@ public class ProductServiceTests {
             assertEquals(1L, retrievedProduct.getId(), "Product ID should match");
         } catch (ProductPersistenceException e) {
             fail("Unexpected exception during setup: " + e.getMessage());
+        } catch (ch.hearc.ig.orderresto.service.exceptions.ProductServiceException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -137,6 +141,8 @@ public class ProductServiceTests {
             assertNotNull(products, "Products should be retrieved successfully");
             assertEquals(1, products.size(), "There should be one product retrieved");
         } catch (ProductPersistenceException e) {
+            throw new RuntimeException(e);
+        } catch (ch.hearc.ig.orderresto.service.exceptions.ProductServiceException e) {
             throw new RuntimeException(e);
         }
     }

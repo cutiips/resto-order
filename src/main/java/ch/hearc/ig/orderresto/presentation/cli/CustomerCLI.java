@@ -8,6 +8,7 @@ import ch.hearc.ig.orderresto.persistence.exceptions.CustomerPersistenceExceptio
 import ch.hearc.ig.orderresto.persistence.mappers.CustomerMapper;
 import ch.hearc.ig.orderresto.presentation.AbstractCLI;
 import ch.hearc.ig.orderresto.service.CustomerService;
+import ch.hearc.ig.orderresto.service.exceptions.CustomerServiceException;
 
 import java.util.Objects;
 
@@ -16,7 +17,7 @@ public class CustomerCLI extends AbstractCLI {
 
     private final CustomerService customerService = new CustomerService();
 
-    public void run() {
+    public void run() throws CustomerServiceException {
         this.ln("======================================================");
         this.ln("0. Retour au menu principal");
         this.ln("1. Nouveau client");
@@ -25,7 +26,7 @@ public class CustomerCLI extends AbstractCLI {
         this.handleUserChoice(userChoice);
     }
 
-    private void handleUserChoice(int userChoice) {
+    private void handleUserChoice(int userChoice) throws CustomerServiceException {
         switch (userChoice) {
             case 0:
                 return;
@@ -68,7 +69,7 @@ public class CustomerCLI extends AbstractCLI {
         }
     }
 
-    public Customer addCustomer() {
+    public Customer addCustomer() throws CustomerServiceException {
         this.ln("Type de client : 1. Client Privé, 2. Organisation");
         int choice = this.readIntFromUser(1, 2);
         Customer customer = createCustomer(choice == 1);
@@ -79,7 +80,7 @@ public class CustomerCLI extends AbstractCLI {
         return customer ;
     }
 
-    public Customer getExistingCustomer() {
+    public Customer getExistingCustomer() throws CustomerServiceException {
         Customer customer = null;
         while (customer == null) {
             this.ln("Quelle est votre adresse email?");

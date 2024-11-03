@@ -5,6 +5,7 @@ import ch.hearc.ig.orderresto.business.OrganizationCustomer;
 import ch.hearc.ig.orderresto.business.PrivateCustomer;
 import ch.hearc.ig.orderresto.persistence.exceptions.CustomerPersistenceException;
 import ch.hearc.ig.orderresto.persistence.utils.ConnectionManager;
+import ch.hearc.ig.orderresto.service.exceptions.CustomerServiceException;
 import org.junit.jupiter.api.*;
 import org.mockito.Mockito;
 
@@ -70,7 +71,7 @@ public class CustomerServiceTests {
     }
 
     @Test
-    public void testGetCustomerById() throws CustomerPersistenceException {
+    public void testGetCustomerById() throws CustomerPersistenceException, CustomerServiceException {
         // Arrange
         Address address = new Address("CH", "1000", "Lausanne", "Route", "5");
         PrivateCustomer customer = new PrivateCustomer(null, "1122334455", "getcustomer@test.com", address, "N", "Alice", "Smith");
@@ -85,7 +86,7 @@ public class CustomerServiceTests {
     }
 
     @Test
-    public void testUpdateCustomer() throws CustomerPersistenceException {
+    public void testUpdateCustomer() throws CustomerPersistenceException, CustomerServiceException {
         // Arrange
         Address address = new Address("CH", "4000", "Bâle", "Rue Centrale", "3");
         PrivateCustomer customer = new PrivateCustomer(1L, "9988776655", "update2@test.com", address, "O", "Bob", "Marley");
@@ -109,7 +110,7 @@ public class CustomerServiceTests {
     }
 
     @Test
-    public void testDeleteCustomer() throws CustomerPersistenceException {
+    public void testDeleteCustomer() throws CustomerPersistenceException, CustomerServiceException {
         // Arrange
         Address address = new Address("CH", "5000", "Aarau", "Place", "7");
         PrivateCustomer customer = new PrivateCustomer(null, "5544332211", "delete@test.com", address, "N", "Charlie", "Chaplin");

@@ -1,10 +1,9 @@
 package ch.hearc.ig.orderresto.service;
 
 import ch.hearc.ig.orderresto.business.Restaurant;
-import ch.hearc.ig.orderresto.persistence.exceptions.ProductPersistenceException;
 import ch.hearc.ig.orderresto.persistence.exceptions.RestaurantPersistenceException;
 import ch.hearc.ig.orderresto.persistence.mappers.RestaurantMapper;
-import ch.hearc.ig.orderresto.persistence.utils.ConnectionManager;
+import ch.hearc.ig.orderresto.service.exceptions.RestaurantServiceException;
 import org.junit.jupiter.api.*;
 import org.mockito.Mockito;
 
@@ -17,32 +16,13 @@ import static org.mockito.Mockito.*;
 
 public class RestaurantServiceTests {
 
-    private static Connection conn;
     private RestaurantService restaurantService;
     private RestaurantMapper restaurantMapperMock;
-
-    @BeforeAll
-    public static void setUpClass() throws SQLException {
-        conn = ConnectionManager.getConnection();
-        conn.setAutoCommit(false);
-    }
 
     @BeforeEach
     public void setUp() {
         restaurantMapperMock = Mockito.mock(RestaurantMapper.class);
         restaurantService = new RestaurantService(restaurantMapperMock);
-    }
-
-    @AfterEach
-    public void tearDown() throws SQLException {
-        conn.rollback();
-    }
-
-    @AfterAll
-    public static void tearDownClass() throws SQLException {
-        if (conn != null) {
-            conn.close();
-        }
     }
 
     @Test
@@ -64,29 +44,8 @@ public class RestaurantServiceTests {
                 .when(restaurantMapperMock).insert(any(Restaurant.class), any(Connection.class));
 
         // Vérifier qu'une exception est lancée
-        assertThrows(RestaurantPersistenceException.class, () -> restaurantService.addRestaurant(restaurant));
+        assertThrows(RestaurantServiceException.class, () -> restaurantService.addRestaurant(restaurant));
     }
-
-    @Test
-    public void testCreateRestaurantRollbackOnFailure() throws RestaurantPersistenceException {
-        Restaurant restaurant = new Restaurant(null, "Test Restaurant", null);
-
-        // Simuler une exception lors de l'insertion
-        doThrow(new RestaurantPersistenceException("Simulated persistence exception", new SQLException("Simulated SQL cause")))
-                .when(restaurantMapperMock).insert(any(Restaurant.class), any(Connection.class));
-
-        boolean result = false;
-        try {
-            result = restaurantService.addRestaurant(restaurant);
-        } catch (RestaurantPersistenceException | ProductPersistenceException e) {
-            System.out.println("Caught expected exception: " + e.getMessage());
-        }
-
-        // Vérifier que la méthode retourne 'false' en cas d'échec
-        assertFalse(result, "Restaurant creation should fail and rollback");
-    }
-
-
 
     @Test
     public void testGetRestaurantById() {
@@ -96,8 +55,10 @@ public class RestaurantServiceTests {
             Restaurant retrievedRestaurant = restaurantService.getRestaurantById(1L);
             assertNotNull(retrievedRestaurant, "Restaurant should be retrieved successfully");
             assertEquals(1L, retrievedRestaurant.getId(), "Restaurant ID should match");
-        } catch (RestaurantPersistenceException | ProductPersistenceException e) {
+        } catch (RestaurantPersistenceException e) {
             fail("Unexpected exception during setup: " + e.getMessage());
+        } catch (RestaurantServiceException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -121,10 +82,16 @@ public class RestaurantServiceTests {
 
     @Test
     public void testFindAllRestaurants() {
-        List<Restaurant> restaurants = restaurantService.getAllRestaurants();
-        assertNotNull(restaurants, "Restaurants should be retrieved successfully");
-        assertFalse(restaurants.isEmpty(), "There should be at least one restaurant retrieved");
+        List<Restaurant> restaurants = List.of(new Restaurant(1L, "Test Restaurant", null));
+        try {
+            when(restaurantMapperMock.findAll(any(Connection.class))).thenReturn(restaurants);
+            List<Restaurant> retrievedRestaurants = restaurantService.getAllRestaurants();
+            assertNotNull(retrievedRestaurants, "Restaurants should be retrieved successfully");
+            assertFalse(retrievedRestaurants.isEmpty(), "There should be at least one restaurant retrieved");
+        } catch (RestaurantPersistenceException e) {
+            fail("Unexpected exception during setup: " + e.getMessage());
+        } catch (RestaurantServiceException e) {
+            throw new RuntimeException(e);
+        }
     }
-
-
 }

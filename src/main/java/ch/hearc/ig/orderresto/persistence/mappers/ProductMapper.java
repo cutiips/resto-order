@@ -109,7 +109,11 @@ public class ProductMapper extends BaseMapper<Product> {
 
     // Méthode pour récupérer un restaurant par ID
     private Restaurant getRestaurantById(Long restaurantId) throws ProductPersistenceException {
-        return restaurantService.getRestaurantById(restaurantId);
+        try {
+            return restaurantService.getRestaurantById(restaurantId);
+        } catch (ch.hearc.ig.orderresto.service.exceptions.RestaurantServiceException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     // Méthode pour récupérer tous les produits d'un restaurant par ID avec ajout au cache
