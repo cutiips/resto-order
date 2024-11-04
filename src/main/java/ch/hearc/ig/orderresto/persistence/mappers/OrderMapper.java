@@ -147,7 +147,7 @@ public class OrderMapper extends BaseMapper<Order> {
         Long restaurantId = rs.getLong("fk_resto");
         Restaurant restaurant = restaurantMapper.read(restaurantId, conn);
 
-        Boolean takeAway = "Y".equalsIgnoreCase(rs.getString("a_emporter"));
+        Boolean takeAway = "O".equalsIgnoreCase(rs.getString("a_emporter"));
         LocalDateTime when = rs.getTimestamp("quand").toLocalDateTime();
 
         Order order = new Order(orderId, customer, restaurant, takeAway, when);
