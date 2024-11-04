@@ -243,6 +243,7 @@ public class RestaurantCLI extends AbstractCLI {
             this.ln(String.format("%d. ID: %d - Nom: %s.", i, restaurant.getId(), restaurant.getName()));
         }
         int index = this.readIntFromUser(allRestaurants.size() - 1);
+        this.displayRestaurant(allRestaurants.get(index));
         return (Restaurant) allRestaurants.get(index);
     }
 
