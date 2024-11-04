@@ -21,7 +21,7 @@ public class OrderCLI extends AbstractCLI {
 
 
     public Order createNewOrder() throws SQLException, RestaurantPersistenceException, CustomerPersistenceException, ProductPersistenceException, CustomerServiceException {
-
+        MainCLI mainCLI = new MainCLI();
         this.ln("======================================================");
         Restaurant restaurant = (new RestaurantCLI()).displayRestaurantIdsAndNames();
 
@@ -32,11 +32,14 @@ public class OrderCLI extends AbstractCLI {
             if (selectedProduct != null) {
                 order.addProduct(selectedProduct);
                 this.ln("Produit ajouté : " + selectedProduct.getName());
+                this.ln("Ajouter un autre produit ? (1: Oui, 0: Non)");
+                int addMore = this.readIntFromUser(1);
+                if (addMore == 0) break;
+            } else {
+                mainCLI.run();
             }
 
-            this.ln("Ajouter un autre produit ? (1: Oui, 0: Non)");
-            int addMore = this.readIntFromUser(1);
-            if (addMore == 0) break;
+
         }
 
         // Choix du type de commande
@@ -52,7 +55,7 @@ public class OrderCLI extends AbstractCLI {
 
         int userChoice = this.readIntFromUser(2);
         if (userChoice == 0) {
-            (new MainCLI()).run();
+            mainCLI.run();
             return null;
         }
 
