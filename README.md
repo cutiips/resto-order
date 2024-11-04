@@ -48,12 +48,24 @@ Les méthodes à implémenter incluent :
 
 À la fin de cet exercice, vous devrez être capables d’apporter des solutions aux questions suivantes :
 
-- Comment gérer les connexions JDBC ?
-- Comment générer les identifiants techniques (PK) et faire en sorte qu’ils soient présents dans les objets après leur création ?
-- Comment gérer les relations ?
-- Que faire dans le Data Mapper lors de la recherche du restaurant (rechercher uniquement le restaurant ? également ses commandes ? où s'arrêter ?) ?
-- Doit-il y avoir des relations entre les différents Data Mappers ?
-- Combien d'interactions (requêtes JDBC) sont effectuées avec la base de données dans votre code ?
+Comment gérer les connexions JDBC ? -> Gérer par ConnectionManager et la classe TransactionHandler
+ConnectionManager : responsable de charger les propriétés de ocnfiguration de la base de données et de fournir des connexions JDBC
+TransactionHandler : gère les transactions en utilisant un modèle de type try-with-resources pour garantir que les connexions sont correctement fermées, même en cas d'exception
+Test : les connexions sont gérées manuellement avec des appels explicites
+
+Comment générer les identifiants techniques (PK) et faire en sorte qu’ils soient présents dans les objets après leur création ? -> côté BDD ils sont générés avec des séquences et des triggers. Dans le projet ces clés sont récupérées avec les méthodes getGenereatedKeys (dans les mappers, dans les paramètres du prepare statement par exemple).
+
+Comment gérer les relations ? -> Principalement gérés par des classes de mappers et des DTO.
+mappers : elles sont resposnable de la conversion des résultats de requêtes SQL en objets Java (et inversement), et gèrenet les relations entre les entités.
+DTO : sont utilisés pour transférer les données entre les différentes couches de l'app (par exemple classe Restaurant pour une relation One-to-Many.
+tests : les relations sont testées pour s'assurer que les mappers et les DTO fonctionnent correctement ensemble.
+
+Que faire dans le Data Mapper lors de la recherche du restaurant (rechercher uniquement le restaurant ? également ses commandes ? où s'arrêter ?) ? -> dans ce projet, en fonction des besoins métiers.
+Par exemple dans ce projet seul les informations du restaurant sont récuprées, les commandes associées au restaurant ne sont pas chargées automatiquement (bcp de charge de travail).
+
+Doit-il y avoir des relations entre les différents Data Mappers ? -> dans ce projet, oui. Par exemple dans RestaurantMapper, on utilise OrderMapper pour charger les commandes associées à un restaurant car dans OrderMapper, l'app fournit une méthode pour récupérer les commandes par ID de restaurant.
+
+Combien d'interactions (requêtes JDBC) sont effectuées avec la base de données dans votre code ? -> de manière générale chaque opération CRUD implique une requête JDBC.
 
 
 
