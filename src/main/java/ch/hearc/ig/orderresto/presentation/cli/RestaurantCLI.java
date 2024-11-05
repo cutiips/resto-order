@@ -206,7 +206,6 @@ public class RestaurantCLI extends AbstractCLI {
             throw new RuntimeException(e);
         }
         this.ln("Restaurant supprimé avec succès !");
-
     }
 
     /**

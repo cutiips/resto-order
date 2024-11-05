@@ -1,15 +1,20 @@
 package ch.hearc.ig.orderresto.presentation.cli;
 
+import ch.hearc.ig.orderresto.application.Main;
 import ch.hearc.ig.orderresto.business.Address;
 import ch.hearc.ig.orderresto.business.Customer;
 import ch.hearc.ig.orderresto.business.OrganizationCustomer;
 import ch.hearc.ig.orderresto.business.PrivateCustomer;
 import ch.hearc.ig.orderresto.persistence.exceptions.CustomerPersistenceException;
+import ch.hearc.ig.orderresto.persistence.exceptions.ProductPersistenceException;
+import ch.hearc.ig.orderresto.persistence.exceptions.RestaurantPersistenceException;
 import ch.hearc.ig.orderresto.persistence.mappers.CustomerMapper;
 import ch.hearc.ig.orderresto.presentation.AbstractCLI;
 import ch.hearc.ig.orderresto.service.CustomerService;
 import ch.hearc.ig.orderresto.service.exceptions.CustomerServiceException;
+import oracle.as.management.opmn.integrator.OpmnIntegrator;
 
+import java.sql.SQLException;
 import java.util.Objects;
 
 public class CustomerCLI extends AbstractCLI {
@@ -54,17 +59,25 @@ public class CustomerCLI extends AbstractCLI {
         return customer ;
     }
 
-    public Customer getExistingCustomer() throws CustomerServiceException {
-        Customer customer = null;
-        while (customer == null) {
+    public Customer getExistingCustomer() throws CustomerServiceException, RestaurantPersistenceException, SQLException, CustomerPersistenceException, ProductPersistenceException {
+        Customer customer;
+        while (true) {
             this.ln("Quelle est votre adresse email?");
             String email = this.readEmailFromUser();
 
             customer = customerService.getExistingCustomer(email);
-            if (customer == null) {
-                this.ln("Aucun client trouvé avec cet email. Veuillez réessayer.");
+            if (customer != null) {
+                return customer;
+            } else {
+                this.ln("Aucun client trouvé avec cet email.");
+                this.ln("Voulez-vous réessayer? [oui / non]");
+                String response = this.readStringFromUser();
+                if (!response.equalsIgnoreCase("oui")) {
+                    new MainCLI().run();
+                    return null;
+                }
             }
         }
-        return customer;
     }
+
 }

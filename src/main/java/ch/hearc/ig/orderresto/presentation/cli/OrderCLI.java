@@ -94,9 +94,9 @@ public class OrderCLI extends AbstractCLI {
         return order;
     }
 
-    public Order selectOrder() throws SQLException, CustomerServiceException {
+    public Order selectOrder() throws SQLException, CustomerServiceException, RestaurantPersistenceException, CustomerPersistenceException, ProductPersistenceException {
         Customer customer = (new CustomerCLI()).getExistingCustomer();
-        List<Order> orders = null;
+        List<Order> orders;
         try {
             orders = orderService.findOrdersByCustomer(customer);
         } catch (ch.hearc.ig.orderresto.service.exceptions.OrderServiceException e) {
