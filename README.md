@@ -1,7 +1,7 @@
 ﻿# resto-order
 # Projet 1 - Exercice 1
 
-## Créer le projet
+## ✅ Créer le projet
 Veuillez télécharger l’application `resto-order` disponible sur Cyberlearn et l’importer dans votre IDE. Lancez le script de création de la structure des données ainsi que le script d’insertion des données sur votre serveur Oracle.
 
 - File -> New -> Project from Existing Sources
@@ -9,7 +9,7 @@ Veuillez télécharger l’application `resto-order` disponible sur Cyberlearn e
 - Confirmez en cliquant sur « OK »
 - Note : la version de Java à utiliser est en principe Java 11, mais vous êtes libres d’utiliser des versions plus récentes si vous souhaitez bénéficier de fonctionnalités plus avancées.
 
-## Présentation du projet
+## ✅ Présentation du projet
 
 Voici quelques informations supplémentaires sur l'application :
 
@@ -32,7 +32,12 @@ Cette application a pour but de vous permettre de mettre en pratique rapidement 
 
 ---
 
-## Exercice 1
+## ✅ Exercice 1
+🛣️ sous : **src/main/java/ch/hearc/ig/orderresto/persistence/mappers/RestaurantMapper.java**
+
+💡 nous avons également implémenté les autres mappers pour les autres classes métiers.
+
+💡 vous trouverez les informations pour lancer le projet dans le fichier [Documentation.md](Documentation.md)
 
 Vous devez persister le modèle de domaine **"restaurants"** dans la structure de données fournie. Utilisez le design pattern **Data Mapper** [Martin Fowler](http://martinfowler.com/eaaCatalog/dataMapper.html) en vous appuyant sur les classes disponibles sur Cyberlearn.
 
@@ -44,35 +49,48 @@ Les méthodes à implémenter incluent :
 
 ---
 
-### Questions à résoudre [Issue #4](https://github.com/cutiips/resto-order/issues/4)
+### Questions à résoudre 
 
 À la fin de cet exercice, vous devrez être capables d’apporter des solutions aux questions suivantes :
 
-Comment gérer les connexions JDBC ? -> Gérer par ConnectionManager et la classe TransactionHandler
-ConnectionManager : responsable de charger les propriétés de ocnfiguration de la base de données et de fournir des connexions JDBC
-TransactionHandler : gère les transactions en utilisant un modèle de type try-with-resources pour garantir que les connexions sont correctement fermées, même en cas d'exception
-Test : les connexions sont gérées manuellement avec des appels explicites
+### Comment gérer les connexions JDBC ? 
+> Les connexions JDBC sont gérées par **ConnectionManager** et la classe **TransactionHandler**
+>
+> **ConnectionManager :** responsable de charger les propriétés de ocnfiguration de la base de données et de fournir des connexions JDBC 
+> 
+> **TransactionHandler :** gère les transactions en utilisant un modèle de type try-with-resources pour garantir que les connexions sont correctement fermées, même en cas d'exception
+> 
+> Tests : les connexions sont gérées manuellement avec des appels explicites
 
-Comment générer les identifiants techniques (PK) et faire en sorte qu’ils soient présents dans les objets après leur création ? -> côté BDD ils sont générés avec des séquences et des triggers. Dans le projet ces clés sont récupérées avec les méthodes getGenereatedKeys (dans les mappers, dans les paramètres du prepare statement par exemple).
+### Comment générer les identifiants techniques (PK) et faire en sorte qu’ils soient présents dans les objets après leur création ? 
+> Côté BDD, ils sont générés avec des séquences et des triggers. 
+> 
+> Dans le projet ces clés sont récupérées avec les méthodes `getGenereatedKeys` (dans les mappers, dans les paramètres du prepare statement par exemple).
 
-Comment gérer les relations ? -> Principalement gérés par des classes de mappers et des DTO.
-mappers : elles sont resposnable de la conversion des résultats de requêtes SQL en objets Java (et inversement), et gèrenet les relations entre les entités.
-DTO : sont utilisés pour transférer les données entre les différentes couches de l'app (par exemple classe Restaurant pour une relation One-to-Many.
-tests : les relations sont testées pour s'assurer que les mappers et les DTO fonctionnent correctement ensemble.
+### Comment gérer les relations ? 
+> Principalement gérés par des classes de **mappers** et des **DTO**.
+> 
+> **mappers :** elles sont responsable de la conversion des résultats de requêtes SQL en objets Java (et inversement), et gèrenet les relations entre les entités.
+> 
+> **DTO :** sont utilisés pour transférer les données entre les différentes couches de l'app (par exemple classe Restaurant pour une relation One-to-Many.
+>
+> tests : les relations sont testées pour s'assurer que les mappers et les DTO fonctionnent correctement ensemble.
 
-Que faire dans le Data Mapper lors de la recherche du restaurant (rechercher uniquement le restaurant ? également ses commandes ? où s'arrêter ?) ? -> dans ce projet, en fonction des besoins métiers.
-Par exemple dans ce projet seul les informations du restaurant sont récuprées, les commandes associées au restaurant ne sont pas chargées automatiquement (bcp de charge de travail).
+### Que faire dans le Data Mapper lors de la recherche du restaurant (rechercher uniquement le restaurant ? également ses commandes ? où s'arrêter ?) ?
+> dans ce projet, en fonction des besoins métiers. Si nous voulons uniquement retourner les restaurant, mais si nous voulons retourner également les commandes associées, nous devons également charger les commandes associées.
+>
+> Par exemple dans ce projet, nous avons une méthode `findWithOrders` qui retourne un restaurant avec ses commandes associées.
 
-Doit-il y avoir des relations entre les différents Data Mappers ? -> dans ce projet, oui. Par exemple dans RestaurantMapper, on utilise OrderMapper pour charger les commandes associées à un restaurant car dans OrderMapper, l'app fournit une méthode pour récupérer les commandes par ID de restaurant.
+### Doit-il y avoir des relations entre les différents Data Mappers ?
 
-Combien d'interactions (requêtes JDBC) sont effectuées avec la base de données dans votre code ? -> de manière générale chaque opération CRUD implique une requête JDBC.
+> Dans ce projet, oui. Par exemple dans `RestaurantMapper`, on utilise `OrderMapper` pour charger les commandes associées à un restaurant, car dans `OrderMapper`, l'app fournit une méthode pour récupérer les commandes par ID de restaurant.
 
-
-
-
+### Combien d'interactions (requêtes JDBC) sont effectuées avec la base de données dans votre code ?
+> Cela dépend de l'opération CRUD. Par exemple, pour ajouter un restaurant, nous devons effectuer une requête JDBC pour insérer le restaurant dans la base de données.
+>
+> De manière générale chaque opération CRUD implique une requête JDBC.
 
 ---
-
 Il n’y a pas toujours de réponses définitives à ces questions, mais des considérations à prendre en compte. Elles peuvent se révéler acceptables ou non selon les cas.
 
 Ne tentez pas de tout gérer en même temps. Commencez simple (par exemple avec la classe `City`) et construisez progressivement.
@@ -87,4 +105,31 @@ Cet exercice est important, assez long, et représente les **fondations** pour l
 ## Modèle de données :
 ![Modèle de données](ModeleDonnees.png)
 
+# Exercice 2
+🛣️ sous : **src/main/java/ch/hearc/ig/orderresto/persistence/IdentityMap.java**
 
+Implémentez la notion d’identity maps dans votre projet.
+
+> L'implémentation de l'identity map est faite dans la classe `IdentityMap` qui est une classe générique qui stocke les objets métier en mémoire. 
+> 
+> Elle est ensuite implémenté dans la classe `BaseMapper`, qui est également générique, et ensuite la généricité est utilisée pour les autres mappers.
+
+# Exercice 3
+
+🛣️ sous : **src/main/java/ch/hearc/ig/orderresto/service**
+
+Ajoutez une couche de « services » (nouveau package) dans votre application, cette dernière propose des
+méthodes « gros grain » et doit être pris en charge de gérer les transactions.
+En pratique, il s’agit de déplacer du code présent aujourd’hui dans votre CLI vers une ou plusieurs nouvelles
+classes qui s’occupent de :
+> - Récupérer une connexion JDBC (ou de créer une nouvelle connexion)
+>   - 💡 Utilisez la classe `TransactionHandler` pour gérer les transactions
+
+> - Faire appel à vos différents DataMappers/DAOs
+>  - 💡 directement dans les paramètres de la méthode `mapper` 
+
+> - Commiter votre transaction
+>  - 💡 nous avons utilisé le `TransactionHandler` pour gérer les commits (et rollbacks) de manière manuelle dans la méthode `executeInTransaction`
+
+>- Optionnel : Fermer (ou libérer) la connection JDBC (ce qui va la rendre au pool de connexions)
+>  - 💡 la connexion JDBC est fermée par le `TransactionHandler` grâce au `try-with-resources` dans la méthode `executeInTransaction`.
