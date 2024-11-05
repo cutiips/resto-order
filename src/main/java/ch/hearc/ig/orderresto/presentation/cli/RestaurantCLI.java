@@ -1,11 +1,14 @@
 package ch.hearc.ig.orderresto.presentation.cli;
 
 import ch.hearc.ig.orderresto.business.Address;
+import ch.hearc.ig.orderresto.business.Product;
 import ch.hearc.ig.orderresto.business.Restaurant;
 import ch.hearc.ig.orderresto.persistence.exceptions.ProductPersistenceException;
 import ch.hearc.ig.orderresto.persistence.exceptions.RestaurantPersistenceException;
 import ch.hearc.ig.orderresto.presentation.AbstractCLI;
+import ch.hearc.ig.orderresto.service.ProductService;
 import ch.hearc.ig.orderresto.service.RestaurantService;
+import ch.hearc.ig.orderresto.service.exceptions.ProductServiceException;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -221,7 +224,7 @@ public class RestaurantCLI extends AbstractCLI {
             this.ln("Aucun restaurant trouvé.");
         } else {
             for (Restaurant restaurant : restaurants) {
-                displayRestaurant(restaurant);
+                displayRestaurant(restaurant, false);
             }
         }
     }
@@ -243,7 +246,7 @@ public class RestaurantCLI extends AbstractCLI {
             this.ln(String.format("%d. ID: %d - Nom: %s.", i, restaurant.getId(), restaurant.getName()));
         }
         int index = this.readIntFromUser(allRestaurants.size() - 1);
-        this.displayRestaurant(allRestaurants.get(index));
+        this.displayRestaurant(allRestaurants.get(index), true);
         return (Restaurant) allRestaurants.get(index);
     }
 
@@ -251,14 +254,33 @@ public class RestaurantCLI extends AbstractCLI {
      * 📝 Affiche les détails complets d'un restaurant.
      * @param restaurant Le restaurant a affiché.
      */
-    private void displayRestaurant(Restaurant restaurant) {
+    private void displayRestaurant(Restaurant restaurant, boolean displayProducts) {
         this.ln(String.format("Nom: %s, Adresse: %s %s, %s %s",
                 restaurant.getName(),
                 restaurant.getAddress().getStreet(),
                 restaurant.getAddress().getStreetNumber(),
                 restaurant.getAddress().getPostalCode(),
                 restaurant.getAddress().getLocality()));
+        if (displayProducts) {
+            // demandez à l'utilisateur s'il souhaite afficher les produits du restaurant
+            this.ln("Voulez-vous afficher les produits de ce restaurant ? [oui / non]");
+            boolean choice = this.readBooleanFromUser();
+            if (choice) {
+                ProductService productService = new ProductService();
+                ProductCLI productCLI = new ProductCLI();
+                try {
+                    List<Product> products = productService.getProductsByRestaurantId(restaurant.getId());
+                    if (products.isEmpty()) {
+                        this.ln("Aucun produit trouvé pour ce restaurant.");
+                    } else {
+                        for (Product product : products) {
+                            productCLI.displayProduct(product);
+                        }
+                    }
+                } catch (ProductServiceException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
     }
-
-
 }

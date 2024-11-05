@@ -5,6 +5,7 @@ import ch.hearc.ig.orderresto.business.Restaurant;
 import ch.hearc.ig.orderresto.persistence.exceptions.ProductPersistenceException;
 import ch.hearc.ig.orderresto.presentation.AbstractCLI;
 import ch.hearc.ig.orderresto.service.ProductService;
+import ch.hearc.ig.orderresto.service.exceptions.ProductServiceException;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
@@ -186,7 +187,7 @@ public class ProductCLI extends AbstractCLI {
      * 📝 Affiche les détails d'un produit.
      * @param product Le produit à afficher.
      */
-    private void displayProduct(Product product) {
+   public void displayProduct(Product product) {
         this.ln(String.format("Nom: %s, Prix: %.2f CHF, Description: %s",
                 product.getName(),
                 product.getUnitPrice(),
@@ -199,7 +200,7 @@ public class ProductCLI extends AbstractCLI {
         List<Product> products = null;
         try {
             products = productService.getProductsByRestaurantId(restaurant.getId());
-        } catch (ch.hearc.ig.orderresto.service.exceptions.ProductServiceException e) {
+        } catch (ProductServiceException e) {
             throw new RuntimeException(e);
         }
 

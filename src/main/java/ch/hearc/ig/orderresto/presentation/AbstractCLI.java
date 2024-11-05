@@ -127,4 +127,17 @@ public abstract class AbstractCLI {
 
         return new Address(countryCode, postalCode, locality, street, streetNumber);
     }
+
+    protected boolean readBooleanFromUser() {
+        String input = null;
+        while (input == null) {
+            input = this.readStringFromUser();
+            if (!input.equalsIgnoreCase("oui") && !input.equalsIgnoreCase("non")) {
+                this.ln("Veuillez répondre par 'oui' ou 'non'.");
+                input = null;
+            }
+        }
+        return input.equalsIgnoreCase("oui");
+
+    }
 }
