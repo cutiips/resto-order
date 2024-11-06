@@ -30,7 +30,6 @@ public class CustomerService {
                 customerMapper.insert(customer, conn);
                 return null; // Void equivalent
             });
-            System.out.println("Client added successfully!");
         } catch (Exception e) {
             throw new CustomerServiceException("Failed to add customer", e);
         }

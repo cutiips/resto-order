@@ -7,7 +7,20 @@ import ch.hearc.ig.orderresto.persistence.utils.CustomerUtils;
 import java.sql.*;
 import java.util.Optional;
 
+/**
+ * 🧭 CustomerMapper - Manages database operations for {@link Customer} entities.
+ * <p>
+ * Provides CRUD operations and utilizes an in-memory cache to optimize performance by reducing redundant database calls.
+ */
 public class CustomerMapper extends BaseMapper<Customer> {
+
+    /**
+     * ➕ Inserts a new customer into the database.
+     *
+     * @param customer The {@link Customer} entity to insert.
+     * @param conn     The database connection used for the operation.
+     * @throws CustomerPersistenceException if an SQL error occurs or no ID is generated.
+     */
     public void insert(Customer customer, Connection conn) throws CustomerPersistenceException {
         String query = "INSERT INTO CLIENT (telephone, email, nom, code_postal, localite, rue, num_rue, pays, est_une_femme, prenom, forme_sociale, type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
@@ -32,7 +45,14 @@ public class CustomerMapper extends BaseMapper<Customer> {
 
     }
 
-
+    /**
+     * 📧 Finds a customer by their email.
+     *
+     * @param email The email of the customer to find.
+     * @param conn  The database connection used for the operation.
+     * @return The {@link Customer} entity if found, otherwise null.
+     * @throws CustomerPersistenceException if an SQL error occurs.
+     */
     public Customer findByEmail(String email, Connection conn) throws CustomerPersistenceException {
         String query = "SELECT * FROM CLIENT WHERE email = ?";
         Customer customer = null;
@@ -54,6 +74,14 @@ public class CustomerMapper extends BaseMapper<Customer> {
         return customer;
     }
 
+    /**
+     * 🔍 Reads a customer from the database by their ID.
+     *
+     * @param id   The ID of the customer to read.
+     * @param conn The database connection used for the operation.
+     * @return The {@link Customer} entity if found, otherwise null.
+     * @throws CustomerPersistenceException if an SQL error occurs.
+     */
     public Customer read(Long id, Connection conn) throws CustomerPersistenceException {
         Optional<Customer> cachedCustomer = findInCache(id);
         if (cachedCustomer.isPresent()) {
@@ -80,8 +108,13 @@ public class CustomerMapper extends BaseMapper<Customer> {
         return customer;
     }
 
-
-
+    /**
+     * ✏️ Updates an existing customer in the database.
+     *
+     * @param customer The {@link Customer} entity with updated information.
+     * @param conn     The database connection used for the operation.
+     * @throws CustomerPersistenceException if an SQL error occurs.
+     */
     public void update(Customer customer, Connection conn) throws CustomerPersistenceException {
         String query = "UPDATE CLIENT SET telephone = ?, nom = ?, code_postal = ?, localite = ?, rue = ?, num_rue = ?, pays = ?, est_une_femme = ?, prenom = ?, forme_sociale = ? WHERE email = ?";
 
@@ -94,6 +127,13 @@ public class CustomerMapper extends BaseMapper<Customer> {
         }
     }
 
+    /**
+     * 🗑️ Deletes a customer from the database by their ID.
+     *
+     * @param id   The ID of the customer to delete.
+     * @param conn The database connection used for the operation.
+     * @throws CustomerPersistenceException if an SQL error occurs.
+     */
     public void delete(Long id, Connection conn) throws CustomerPersistenceException {
         String query = "DELETE FROM CLIENT WHERE numero = ?";
 

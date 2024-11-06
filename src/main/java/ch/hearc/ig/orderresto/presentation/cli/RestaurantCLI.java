@@ -50,7 +50,7 @@ public class RestaurantCLI extends AbstractCLI {
                 addRestaurant();
                 break;
             case 2:
-                displayRestaurantIdsAndNames();
+                displayRestaurantIdsAndNames(true);
                 break;
             case 3:
                 updateRestaurant();
@@ -93,7 +93,7 @@ public class RestaurantCLI extends AbstractCLI {
      */
     private void updateRestaurant() throws SQLException, RestaurantPersistenceException {
         this.ln("Voici la liste des restaurants (ID et Nom) :");
-        displayRestaurantIdsAndNames();  // Affichage uniquement des ID et noms des restaurants
+        displayRestaurantIdsAndNames(false);
 
         this.ln("Entrez l'ID du restaurant à mettre à jour : ");
         Long id = this.readLongFromUser();
@@ -196,7 +196,7 @@ public class RestaurantCLI extends AbstractCLI {
      */
     private void deleteRestaurant() throws SQLException, RestaurantPersistenceException {
         this.ln("Voici la liste des restaurants (ID et Nom) :");
-        displayRestaurantIdsAndNames();
+        displayRestaurantIdsAndNames(true);
 
         this.ln("Entrez l'ID du restaurant à supprimer : ");
         Long id = this.readLongFromUser();
@@ -232,7 +232,7 @@ public class RestaurantCLI extends AbstractCLI {
      * 📄 Affiche uniquement les IDs et les noms des restaurants.
      * Utile pour la mise à jour ou la suppression des restaurants.
      */
-    public Restaurant displayRestaurantIdsAndNames() throws RestaurantPersistenceException {
+    public Restaurant displayRestaurantIdsAndNames(boolean displayProducts) throws RestaurantPersistenceException {
         this.ln("Choisissez un restaurant:");
         List<Restaurant> allRestaurants = null;
         try {
@@ -245,7 +245,7 @@ public class RestaurantCLI extends AbstractCLI {
             this.ln(String.format("%d. ID: %d - Nom: %s.", i, restaurant.getId(), restaurant.getName()));
         }
         int index = this.readIntFromUser(allRestaurants.size() - 1);
-        this.displayRestaurant(allRestaurants.get(index), true);
+        this.displayRestaurant(allRestaurants.get(index), displayProducts);
         return (Restaurant) allRestaurants.get(index);
     }
 

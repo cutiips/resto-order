@@ -5,16 +5,28 @@ import ch.hearc.ig.orderresto.business.Restaurant;
 import ch.hearc.ig.orderresto.persistence.exceptions.ProductPersistenceException;
 import ch.hearc.ig.orderresto.persistence.exceptions.RestaurantPersistenceException;
 
-
 import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * 🛒 ProductMapper - Manages database operations for {@link Product} entities.
+ * <p>
+ * Provides CRUD operations for products and manages associations with restaurants.
+ */
 public class ProductMapper extends BaseMapper<Product> {
     private final RestaurantMapper restaurantMapper = new RestaurantMapper();
 
+    /**
+     * 🧩 Extracts a {@link Product} from a {@link ResultSet}.
+     *
+     * @param rs   The {@link ResultSet} containing product data.
+     * @param conn The database connection used for the operation.
+     * @return The {@link Product} entity extracted from the result set.
+     * @throws ProductPersistenceException if an error occurs while extracting the product.
+     */
     private Product extractProductFromResultSet(ResultSet rs, Connection conn) throws ProductPersistenceException {
         try {
             Long productId = rs.getLong("numero");
@@ -31,9 +43,15 @@ public class ProductMapper extends BaseMapper<Product> {
         }
     }
 
-    // Méthode pour trouver un produit par ID avec utilisation de l'IdentityMap
+    /**
+     * 🔍 Reads a product by its ID from the database, with cache support.
+     *
+     * @param id   The ID of the product to retrieve.
+     * @param conn The database connection used for the operation.
+     * @return The {@link Product} entity if found, otherwise null.
+     * @throws ProductPersistenceException if an SQL error or data retrieval error occurs.
+     */
     public Product read(Long id, Connection conn) throws ProductPersistenceException {
-        // Vérifie si le produit est déjà en cache
         Optional<Product> cachedProduct = findInCache(id);
         if (cachedProduct.isPresent()) {
             return cachedProduct.get();
@@ -48,7 +66,7 @@ public class ProductMapper extends BaseMapper<Product> {
 
             if (rs.next()) {
                 Product product = extractProductFromResultSet(rs, conn);
-                addToCache(id, product); // Ajoute le produit au cache
+                addToCache(id, product);
                 return product;
             }
         } catch (SQLException e) {
@@ -57,7 +75,13 @@ public class ProductMapper extends BaseMapper<Product> {
         return null;
     }
 
-    // Méthode pour insérer un produit et l'ajouter dans le cache
+    /**
+     * ➕ Inserts a new product into the database and adds it to the cache.
+     *
+     * @param product The {@link Product} entity to insert.
+     * @param conn    The database connection used for the operation.
+     * @throws ProductPersistenceException if an SQL error or ID generation error occurs.
+     */
     public void insert(Product product, Connection conn) throws ProductPersistenceException {
         String sql = "INSERT INTO Produit (nom, prix_unitaire, description, fk_resto) VALUES (?, ?, ?, ?)";
 
@@ -71,14 +95,20 @@ public class ProductMapper extends BaseMapper<Product> {
             ResultSet generatedKeys = statement.getGeneratedKeys();
             if (generatedKeys.next()) {
                 product.setId(generatedKeys.getLong(1));
-                addToCache(product.getId(), product); // Ajoute le produit au cache
+                addToCache(product.getId(), product);
             }
         } catch (SQLException e) {
             throw new ProductPersistenceException("Erreur lors de l'insertion du produit: " + product, e);
         }
     }
 
-    // Méthode pour mettre à jour un produit et mettre à jour le cache
+    /**
+     * 🔄 Updates an existing product in the database and updates the cache.
+     *
+     * @param product The {@link Product} entity with updated information.
+     * @param conn    The database connection used for the operation.
+     * @throws ProductPersistenceException if an SQL error occurs.
+     */
     public void update(Product product, Connection conn) throws ProductPersistenceException {
         String sql = "UPDATE Produit SET nom = ?, prix_unitaire = ?, description = ?, fk_resto = ? WHERE numero = ?";
 
@@ -90,32 +120,51 @@ public class ProductMapper extends BaseMapper<Product> {
             statement.setLong(5, product.getId());
 
             statement.executeUpdate();
-            updateInCache(product.getId(), product); // Met à jour le produit dans le cache
+            updateInCache(product.getId(), product);
         } catch (SQLException e) {
             throw new ProductPersistenceException("Erreur lors de la mise à jour du produit: " + product, e);
         }
     }
 
-    // Méthode pour supprimer un produit et le retirer du cache
+    /**
+     * 🗑️ Deletes a product by its ID from the database and removes it from the cache.
+     *
+     * @param id   The ID of the product to delete.
+     * @param conn The database connection used for the operation.
+     * @throws ProductPersistenceException if an SQL error occurs.
+     */
     public void delete(Long id, Connection conn) throws ProductPersistenceException {
         String sql = "DELETE FROM Produit WHERE numero = ?";
 
         try (PreparedStatement statement = conn.prepareStatement(sql)) {
             statement.setLong(1, id);
             statement.executeUpdate();
-            removeFromCache(id); // Supprime le produit du cache
+            removeFromCache(id);
         } catch (SQLException e) {
             throw new ProductPersistenceException("Erreur lors de la suppression du produit avec ID: " + id, e);
         }
     }
 
-    // Méthode pour récupérer un restaurant par ID
+    /**
+     * 🏠 Retrieves a {@link Restaurant} entity by its ID.
+     *
+     * @param restaurantId The ID of the restaurant to retrieve.
+     * @param conn         The database connection used for the operation.
+     * @return The {@link Restaurant} associated with the given ID.
+     * @throws RestaurantPersistenceException if an SQL error occurs.
+     */
     private Restaurant getRestaurantById(Long restaurantId, Connection conn) throws RestaurantPersistenceException {
         return restaurantMapper.read(restaurantId, conn);
     }
 
-    // Méthode pour récupérer tous les produits d'un restaurant par ID avec ajout au cache
-    //TODO : implémenter une verification dans le cache findInCache() pour voir si certains produits sont déjà présents - évite de les ajouter plusieurs fois
+    /**
+     * 🍽️ Retrieves all products associated with a specific restaurant ID.
+     *
+     * @param restaurantId The ID of the restaurant.
+     * @param conn         The database connection used for the operation.
+     * @return A list of {@link Product} entities associated with the restaurant.
+     * @throws ProductPersistenceException if an SQL error occurs.
+     */
     public List<Product> getProductsByRestaurantId(Long restaurantId, Connection conn) throws ProductPersistenceException {
         List<Product> products = new ArrayList<>();
         String sql = "SELECT numero, nom, prix_unitaire, description, fk_resto FROM Produit WHERE fk_resto = ?";
@@ -127,7 +176,7 @@ public class ProductMapper extends BaseMapper<Product> {
             while (rs.next()) {
                 Product product = extractProductFromResultSet(rs, conn);
                 products.add(product);
-                addToCache(product.getId(), product); // Ajoute chaque produit au cache
+                addToCache(product.getId(), product);
             }
         } catch (SQLException e) {
             throw new ProductPersistenceException("Erreur lors de la récupération des produits pour le restaurant avec ID: " + restaurantId, e);
@@ -135,7 +184,13 @@ public class ProductMapper extends BaseMapper<Product> {
         return products;
     }
 
-    // Méthode pour récupérer tous les produits
+    /**
+     * 📜 Retrieves all products from the database and adds them to the cache.
+     *
+     * @param conn The database connection used for the operation.
+     * @return A list of all {@link Product} entities.
+     * @throws ProductPersistenceException if an SQL error occurs.
+     */
     public List<Product> findAll(Connection conn) throws ProductPersistenceException {
         List<Product> products = new ArrayList<>();
         String sql = "SELECT numero, nom, prix_unitaire, description, fk_resto FROM Produit";
@@ -146,7 +201,7 @@ public class ProductMapper extends BaseMapper<Product> {
             while (rs.next()) {
                 Product product = extractProductFromResultSet(rs, conn);
                 products.add(product);
-                addToCache(product.getId(), product); // Ajoute chaque produit au cache
+                addToCache(product.getId(), product);
             }
         } catch (SQLException e) {
             throw new ProductPersistenceException("Erreur lors de la récupération de tous les produits", e);

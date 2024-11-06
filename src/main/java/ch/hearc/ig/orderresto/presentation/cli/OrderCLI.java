@@ -14,7 +14,9 @@ import ch.hearc.ig.orderresto.service.exceptions.CustomerServiceException;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class OrderCLI extends AbstractCLI {
     private final OrderService orderService = new OrderService();
@@ -23,21 +25,38 @@ public class OrderCLI extends AbstractCLI {
     public Order createNewOrder() throws SQLException, RestaurantPersistenceException, CustomerPersistenceException, ProductPersistenceException, CustomerServiceException {
         MainCLI mainCLI = new MainCLI();
         this.ln("======================================================");
-        Restaurant restaurant = (new RestaurantCLI()).displayRestaurantIdsAndNames();
+        Restaurant restaurant = (new RestaurantCLI()).displayRestaurantIdsAndNames(false);
+
+        Set<Long> insertedProducts = new HashSet<>(); //TEST
+
 
         ProductCLI productCLI = new ProductCLI();
         Order order = new Order(null, null, restaurant, false, LocalDateTime.now());
         while (true) {
             Product selectedProduct = productCLI.displayProductsForRestaurant(restaurant);
-            if (selectedProduct != null) {
-                order.addProduct(selectedProduct);
-                this.ln("Produit ajouté : " + selectedProduct.getName());
+            if (insertedProducts.contains(selectedProduct.getId())) {
+                this.ln("Ce produit a déjà été ajouté à la commande.");
                 this.ln("Ajouter un autre produit ? (1: Oui, 0: Non)");
                 int addMore = this.readIntFromUser(1);
                 if (addMore == 0) break;
             } else {
-                mainCLI.run();
+                order.addProduct(selectedProduct);
+                insertedProducts.add(selectedProduct.getId());
+                this.ln("Produit ajouté : " + selectedProduct.getName());
+                this.ln("Ajouter un autre produit ? (1: Oui, 0: Non)");
+                int addMore = this.readIntFromUser(1);
+                if (addMore == 0) break;
             }
+
+//            if (selectedProduct != null) {
+//                order.addProduct(selectedProduct);
+//                this.ln("Produit ajouté : " + selectedProduct.getName());
+//                this.ln("Ajouter un autre produit ? (1: Oui, 0: Non)");
+//                int addMore = this.readIntFromUser(1);
+//                if (addMore == 0) break;
+//            } else {
+//                mainCLI.run();
+//            }
 
 
         }

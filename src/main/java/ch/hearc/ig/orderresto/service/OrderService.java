@@ -6,8 +6,6 @@ import ch.hearc.ig.orderresto.persistence.mappers.OrderMapper;
 import ch.hearc.ig.orderresto.service.exceptions.OrderServiceException;
 import ch.hearc.ig.orderresto.service.utils.TransactionHandler;
 
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.List;
 
 public class OrderService {
@@ -28,9 +26,8 @@ public class OrderService {
         try {
             transactionHandler.executeInTransaction(conn -> {
                 orderMapper.insert(order, conn);
-                return null; // Void equivalent
+                return null;
             });
-            System.out.println("Order created successfully!");
             return true;
         } catch (Exception e) {
             throw new OrderServiceException("Failed to create order", e);
