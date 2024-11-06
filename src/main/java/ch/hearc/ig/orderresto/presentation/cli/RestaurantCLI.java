@@ -93,7 +93,7 @@ public class RestaurantCLI extends AbstractCLI {
      */
     private void updateRestaurant() throws SQLException, RestaurantPersistenceException {
         this.ln("Voici la liste des restaurants (ID et Nom) :");
-        displayRestaurantIdsAndNames(false);
+        this.displayAllRestaurants();
 
         this.ln("Entrez l'ID du restaurant à mettre à jour : ");
         Long id = this.readLongFromUser();
@@ -196,7 +196,7 @@ public class RestaurantCLI extends AbstractCLI {
      */
     private void deleteRestaurant() throws SQLException, RestaurantPersistenceException {
         this.ln("Voici la liste des restaurants (ID et Nom) :");
-        displayRestaurantIdsAndNames(true);
+        this.displayAllRestaurants();
 
         this.ln("Entrez l'ID du restaurant à supprimer : ");
         Long id = this.readLongFromUser();

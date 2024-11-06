@@ -65,7 +65,17 @@ public class ProductCLI extends AbstractCLI {
         String name = this.readStringFromUser();
 
         this.ln("Prix unitaire : ");
-        BigDecimal unitPrice = new BigDecimal(this.readStringFromUser());
+        BigDecimal unitPrice = null;
+
+        while (unitPrice == null) {
+            String userInput = this.readStringFromUser();
+
+            try {
+                unitPrice = new BigDecimal(userInput);  // Tentative de conversion en BigDecimal
+            } catch (NumberFormatException e) {
+                this.ln("Veuillez entrer un nombre valide pour le prix unitaire.");
+            }
+        }
 
         this.ln("Description du produit : ");
         String description = this.readStringFromUser();
@@ -124,8 +134,25 @@ public class ProductCLI extends AbstractCLI {
         }
 
         this.ln("Nouveau prix unitaire (actuel : " + existingProduct.getUnitPrice() + ", appuyez sur Entrée pour garder inchangé) : ");
-        String newPriceStr = this.readStringFromUser();
-        BigDecimal newUnitPrice = newPriceStr.isEmpty() ? existingProduct.getUnitPrice() : new BigDecimal(newPriceStr);
+        BigDecimal newUnitPrice = existingProduct.getUnitPrice();  // Valeur par défaut si l'utilisateur appuie sur Entrée sans rien saisir
+
+        while (true) {
+            String newPriceStr = this.readStringFromUser();
+
+            if (newPriceStr.isEmpty()) {
+                // Si l'utilisateur appuie sur Entrée sans entrer de valeur, on garde le prix actuel
+                newUnitPrice = existingProduct.getUnitPrice();
+                break;
+            }
+
+            try {
+                newUnitPrice = new BigDecimal(newPriceStr);  // Tentative de conversion en BigDecimal
+                break;  // Si la conversion réussit, on sort de la boucle
+            } catch (NumberFormatException e) {
+                this.ln("Veuillez entrer un nombre valide pour le nouveau prix unitaire.");
+            }
+        }
+
 
         this.ln("Nouvelle description (actuelle : " + existingProduct.getDescription() + ", appuyez sur Entrée pour garder inchangé) : ");
         String newDescription = this.readStringFromUser();
