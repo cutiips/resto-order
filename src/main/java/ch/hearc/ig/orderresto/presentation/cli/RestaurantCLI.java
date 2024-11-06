@@ -254,7 +254,8 @@ public class RestaurantCLI extends AbstractCLI {
      * @param restaurant Le restaurant a affiché.
      */
     private void displayRestaurant(Restaurant restaurant, boolean displayProducts) {
-        this.ln(String.format("Nom: %s, Adresse: %s %s, %s %s",
+        this.ln(String.format("ID: %s, Nom: %s, Adresse: %s %s, %s %s",
+                restaurant.getId(),
                 restaurant.getName(),
                 restaurant.getAddress().getStreet(),
                 restaurant.getAddress().getStreetNumber(),

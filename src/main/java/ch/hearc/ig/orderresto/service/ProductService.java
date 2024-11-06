@@ -27,8 +27,6 @@ public class ProductService {
 
     public Product getProductById(Long id) throws ProductServiceException {
         try {
-            System.out.println("Getting product by id before : "+id);
-            System.out.println("Getting product by id :) : " + transactionHandler.executeInTransaction(conn -> productMapper.read(id, conn)));
             return transactionHandler.executeInTransaction(conn -> productMapper.read(id, conn));
         } catch (Exception e) {
             throw new ProductServiceException("Error while getting product by id", e);
