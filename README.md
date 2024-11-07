@@ -1,5 +1,7 @@
 ﻿# resto-order
-# Projet 1 - Exercice 1
+
+<h2 style="color: red">Modifications apportées</h2>
+⚠️ modification du script de création de tables, ajout d'une contrainte `ON DELETE CASCADE` dans le `ALTER TABLE` de la table `RESTAURANT`
 
 ## ✅ Créer le projet
 Veuillez télécharger l’application `resto-order` disponible sur Cyberlearn et l’importer dans votre IDE. Lancez le script de création de la structure des données ainsi que le script d’insertion des données sur votre serveur Oracle.
