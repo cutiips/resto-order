@@ -1,6 +1,6 @@
 ﻿# resto-order
 
-<h2 style="color: red;">Modifications apportées</h2>
+<h2 style="color: red">Modifications apportées</h2>
 ⚠️ modification du script de création de tables, ajout d'une contrainte `ON DELETE CASCADE` dans le `ALTER TABLE` de la table `RESTAURANT`
 
 ## ✅ Créer le projet
