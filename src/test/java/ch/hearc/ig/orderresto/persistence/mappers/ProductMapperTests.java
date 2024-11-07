@@ -3,7 +3,7 @@ package ch.hearc.ig.orderresto.persistence.mappers;
 import ch.hearc.ig.orderresto.business.*;
 import ch.hearc.ig.orderresto.persistence.exceptions.ProductPersistenceException;
 import ch.hearc.ig.orderresto.persistence.exceptions.RestaurantPersistenceException;
-import ch.hearc.ig.orderresto.persistence.utils.ConnectionManager;
+import ch.hearc.ig.orderresto.service.utils.ConnectionManager;
 import org.junit.jupiter.api.*;
 
 import java.math.BigDecimal;

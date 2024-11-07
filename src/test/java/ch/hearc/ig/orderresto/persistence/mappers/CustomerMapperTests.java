@@ -5,7 +5,7 @@ import ch.hearc.ig.orderresto.business.Customer;
 import ch.hearc.ig.orderresto.business.OrganizationCustomer;
 import ch.hearc.ig.orderresto.business.PrivateCustomer;
 import ch.hearc.ig.orderresto.persistence.exceptions.CustomerPersistenceException;
-import ch.hearc.ig.orderresto.persistence.utils.ConnectionManager;
+import ch.hearc.ig.orderresto.service.utils.ConnectionManager;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;

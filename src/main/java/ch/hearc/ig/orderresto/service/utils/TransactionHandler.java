@@ -1,8 +1,6 @@
 package ch.hearc.ig.orderresto.service.utils;
 
 import java.sql.Connection;
-import java.sql.SQLException;
-import ch.hearc.ig.orderresto.persistence.utils.ConnectionManager;
 
 public class TransactionHandler {
 
